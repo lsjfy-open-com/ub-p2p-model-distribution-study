@@ -1,0 +1,16 @@
+{
+  "n": 100,
+  "size_gb": 140.0,
+  "chunk_gb": 0.25,
+  "policy": "p2p",
+  "source_gbps": 10.0,
+  "down_gbps": 10.0,
+  "peer_up_gbps": 10.0,
+  "fabric_gbps": 100.0,
+  "memory_gbps": 20.0,
+  "rack_gbps": 20.0,
+  "rack_size": 10,
+  "slots": 1,
+  "root_mode": "fixed",
+  "hop_delay_s": 0.00002
+}
