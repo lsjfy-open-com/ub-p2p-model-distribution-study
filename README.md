@@ -7,6 +7,7 @@
 - 报告入口：[`outputs/ub_p2p_study/report.md`](outputs/ub_p2p_study/report.md)。
 - 复现说明：[`outputs/ub_p2p_study/README.md`](outputs/ub_p2p_study/README.md)。
 - 实机验证规程：[`outputs/ub_p2p_study/baseline_protocol.md`](outputs/ub_p2p_study/baseline_protocol.md)。
+- 架构图与协议草案：[`outputs/ub_p2p_study/protocol_design.md`](outputs/ub_p2p_study/protocol_design.md)（2026-09-18 补充，接口通过语法校验，后端待实现）。
 
 代码、参数、结果和报告纳入版本管理；本地虚拟环境、临时文件和重复打包的 ZIP 不纳入版本管理。当前结果为资源与调度仿真，不是 UB 或 Ascend 实机测试。
 

@@ -53,6 +53,8 @@ values={
 text=(ROOT/'report_template.md').read_text()
 for key,value in values.items():text=text.replace('{{'+key+'}}',value)
 assert '{{' not in text
+protocol_text=(ROOT/'protocol_design.md').read_text()
+text+='\n\n---\n\n'+protocol_text
 (ROOT/'report.md').write_text(text)
 html=markdown.markdown(text,extensions=['tables','fenced_code','toc'])
 def embed(match):
@@ -61,4 +63,7 @@ def embed(match):
 html=re.sub(r'src="(figures/[^\"]+\.png)"',embed,html)
 css='''body{max-width:1080px;margin:48px auto;padding:0 28px;font:16px/1.85 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:#182c3a;background:#fff}h1{font-size:32px;line-height:1.4}h2{margin-top:56px;border-bottom:2px solid #138878;padding-bottom:8px}h3{margin-top:30px}table{border-collapse:collapse;width:100%;font-size:14px;display:block;overflow:auto}td,th{border:1px solid #dbe3e9;padding:9px 12px;text-align:left}th{background:#edf5f4}tr:nth-child(even){background:#f7f9fa}pre{background:#f1f5f8;padding:18px;border-radius:8px;white-space:pre-wrap;overflow-wrap:anywhere}code{font-family:ui-monospace,Menlo,monospace;font-size:.9em}img{width:100%;height:auto}blockquote{margin:24px 0;padding:14px 22px;background:#fff6df;border-left:4px solid #bc8a26}a{color:#087b73}p,li{overflow-wrap:anywhere}@media print{body{margin:0;max-width:none;font-size:10pt}h2{margin-top:24px;break-after:avoid}h3{break-after:avoid}table{font-size:8pt;display:table}pre{font-size:8pt}img{max-height:210mm;object-fit:contain}tr{break-inside:avoid}a{color:inherit}}'''
 (ROOT/'report.html').write_text('<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>UB＋P2P 模型分发研究报告</title><style>'+css+'</style><body>'+html+'</body></html>')
+protocol_html=markdown.markdown(protocol_text,extensions=['tables','fenced_code'])
+protocol_html=re.sub(r'src="(figures/[^\"]+\.png)"',embed,protocol_html)
+(ROOT/'protocol_design.html').write_text('<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>UB＋P2P 协议与架构图</title><style>'+css+'</style><body>'+protocol_html+'</body></html>')
 print('Built report.md and offline report.html;',len(rows),'scenarios')

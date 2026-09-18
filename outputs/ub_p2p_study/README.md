@@ -4,6 +4,12 @@
 
 ## 文件
 
+- `protocol_design.html` / `protocol_design.md`：2026-09-18 新增的架构图、传输时序与协议草案（已并入主报告）。
+- `protocol/model_distribution.proto`：自定义应用协议 schema；不等于 UB 底层协议，也不是运行中的服务。
+- `protocol/transport_interface.py`：本地传输接口契约，TCP/URMA 后端尚未实现。
+- `draw_protocol.py`：两张协议图的可编辑源；macOS 自动使用 PingFang，其他系统需配置中文字体。
+- `protocol_validation.txt`：protobuf 编译和生成描述符检查结果，不代表硬件/状态机验证。
+
 - `report.html` / `report.md`：研究报告、社区证据、规格与假设、计算、结果和工程方案。
 - `simulator.py`：分块离散事件模拟器；所有大小使用 GB，所有带宽使用 **GB/s**。
 - `run_experiments.py`：完整参数扫描与四张图。
@@ -28,6 +34,18 @@ python -m unittest -v test_simulator.py
 python run_experiments.py --workers 4
 python build_report.py
 ```
+
+可选的协议语法校验（生成物放在临时目录，不纳入源码）：
+
+```bash
+python -m pip install -r requirements-protocol.txt
+mkdir -p build/protocol
+python -m grpc_tools.protoc -I protocol --python_out=build/protocol --grpc_python_out=build/protocol protocol/model_distribution.proto
+python draw_protocol.py
+python build_report.py
+```
+
+`requirements-lock.txt` 保留原仿真实验依赖；协议工具版本见 `requirements-protocol.txt`。
 
 完整重跑需要数分钟，主要耗时是 15.625 MB 分块的 100 节点场景。实际速度依赖本地 CPU；不会分配 14 TB 真实模型数据。内存中只保存块状态和事件。
 

@@ -1,0 +1,2 @@
+# Optional tooling for the application-protocol draft; not a simulation dependency.
+grpcio-tools==1.80.0

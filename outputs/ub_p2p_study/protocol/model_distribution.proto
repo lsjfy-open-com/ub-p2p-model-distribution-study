@@ -1,0 +1,133 @@
+syntax = "proto3";
+package ubp2p.v1;
+
+// Project-owned application protocol DRAFT, not an official UB wire protocol.
+// All uint64 byte counts use bytes, all *_ms durations use milliseconds.
+// Semantic requirements, auth, deduplication and fencing: ../protocol_design.md.
+enum Backend {
+  BACKEND_UNSPECIFIED = 0;
+  TCP_STREAM = 1;
+  URMA_READ = 2;
+}
+message Empty {}
+message Session {
+  string peer_id = 1;
+  bytes boot_id = 2;             // new random 16 bytes on every Agent restart
+  uint64 coordinator_epoch = 3;
+}
+message Header {
+  uint32 protocol_major = 1;    // must equal 1
+  bytes request_id = 2;        // 16-byte idempotency key, bound to caller identity
+  Session caller = 3;
+}
+message Capabilities {
+  repeated Backend backends = 1;
+  string urma_provider = 2;
+  string urma_abi_profile = 3;  // exact compatible profile, not a guessed version
+  uint64 max_transfer_bytes = 4;
+  uint32 max_inflight_ops = 5;
+  uint64 available_buffer_bytes = 6;
+}
+message JoinRequest { Header header = 1; Capabilities capabilities = 2; string control_uri = 3; }
+message JoinReply { Session session = 1; uint64 heartbeat_interval_ms = 2; }
+message HeartbeatRequest { Header header = 1; uint64 available_buffer_bytes = 2; uint32 active_leases = 3; }
+message ManifestRequest { Header header = 1; bytes manifest_sha256 = 2; }
+message ChunkRef {
+  bytes manifest_sha256 = 1;    // 32 bytes; no mutable model aliases in data RPCs
+  uint64 chunk_id = 2;
+}
+message ChunkSpec {
+  uint64 chunk_id = 1;
+  string relative_file = 2;
+  uint64 file_offset_bytes = 3;
+  uint64 length_bytes = 4;
+  bytes payload_sha256 = 5;
+  string shard_id = 6;
+}
+message ManifestReply {
+  bytes manifest_sha256 = 1;
+  bytes canonical_json_utf8 = 2; // hash over these exact immutable bytes
+  repeated ChunkSpec chunks = 3;// convenience copy; MUST equal canonical content
+}
+message LocateRequest { Header header = 1; ChunkRef chunk = 2; }
+message Candidate { Session source = 1; string control_uri = 2; Capabilities capabilities = 3; }
+message LocateReply { repeated Candidate candidates = 1; }
+enum AdvertisedState {
+  ADVERTISED_UNSPECIFIED = 0;
+  VERIFIED_VOLATILE = 1;
+  VERIFIED_DURABLE = 2;
+  UNAVAILABLE = 3;
+}
+message ReportRequest {
+  Header header = 1;
+  ChunkRef chunk = 2;
+  uint64 cache_generation = 3;
+  uint64 state_sequence = 4;    // monotonic within caller boot session
+  AdvertisedState state = 5;
+}
+service Coordinator {
+  rpc Join(JoinRequest) returns (JoinReply);
+  rpc Heartbeat(HeartbeatRequest) returns (Empty);
+  rpc GetManifest(ManifestRequest) returns (ManifestReply);
+  rpc LocateChunk(LocateRequest) returns (LocateReply);
+  rpc ReportChunk(ReportRequest) returns (Empty);
+}
+
+message AcquireRequest {
+  Header header = 1;
+  Session expected_source = 2;
+  ChunkRef chunk = 3;
+  repeated Backend acceptable_backends = 4;
+  bool allow_tcp_fallback = 5;   // false for UB-only performance experiments
+  uint64 requested_lease_ms = 6;
+}
+message TcpGrant { string stream_uri = 1; }
+message UrmaGrant {
+  string abi_profile = 1;
+  bytes segment_export = 2;    // versioned provider descriptor; NEVER raw C struct/pointer
+  bytes endpoint_export = 3;
+  bytes read_credential = 4;   // authenticated channel only; never logged or put in manifest
+  uint64 segment_offset_bytes = 5;
+}
+message ReadGrant {
+  bytes lease_id = 1;          // bound to authenticated receiver session + source generation
+  bytes transfer_id = 2;       // new for every attempt; copied into completion mapping
+  Session source = 3;
+  uint64 cache_generation = 4;
+  ChunkSpec chunk = 5;
+  uint64 valid_for_ms = 6;     // relative expiry; never grants safe buffer reuse at expiry
+  uint64 max_operation_bytes = 7;
+  uint32 max_inflight_ops = 8;
+  Backend selected_backend = 9;
+  oneof transport {
+    TcpGrant tcp = 10;
+    UrmaGrant urma = 11;
+  }
+}
+message RenewRequest { Header header = 1; bytes lease_id = 2; bytes transfer_id = 3; }
+message RenewReply { uint64 valid_for_ms = 1; }
+message ReleaseRequest {
+  Header header = 1;
+  bytes lease_id = 2;
+  bytes transfer_id = 3;
+  bool no_more_posts = 4;
+  bool local_operations_drained = 5;
+}
+message ReleaseReply { bool released = 1; bool quarantined = 2; }
+service PeerControl {
+  rpc AcquireReadLease(AcquireRequest) returns (ReadGrant);
+  rpc RenewReadLease(RenewRequest) returns (RenewReply);
+  rpc ReleaseReadLease(ReleaseRequest) returns (ReleaseReply);
+}
+
+// TCP baseline only. URMA payload never passes through this RPC.
+message ReadChunkRequest { Header header = 1; bytes lease_id = 2; bytes transfer_id = 3; }
+message ChunkFrame {
+  bytes transfer_id = 1;
+  uint64 offset_bytes = 2;     // relative to chunk; strictly contiguous from zero in v1
+  bytes payload = 3;          // <= 1 MiB application payload per message in v1
+  bool end_of_chunk = 4;      // true only on the last payload frame
+}
+service TcpPayload {
+  rpc ReadChunk(ReadChunkRequest) returns (stream ChunkFrame);
+}
