@@ -62,7 +62,7 @@ message ReportRequest {
   Header header = 1;
   ChunkRef chunk = 2;
   uint64 cache_generation = 3;
-  uint64 state_sequence = 4;    // monotonic within caller boot session
+  uint64 state_sequence = 4;    // monotonic per (caller session, manifest_sha256, chunk_id)
   AdvertisedState state = 5;
 }
 service Coordinator {
@@ -80,6 +80,7 @@ message AcquireRequest {
   repeated Backend acceptable_backends = 4;
   bool allow_tcp_fallback = 5;   // false for UB-only performance experiments
   uint64 requested_lease_ms = 6;
+  Capabilities receiver_capabilities = 7; // negotiate with source capabilities
 }
 message TcpGrant { string stream_uri = 1; }
 message UrmaGrant {

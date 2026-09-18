@@ -85,24 +85,24 @@ def plots(rows):
         for (p,k),color in zip([("single",1),("multi",4),("multi",8),("p2p",1)],colors):
             rr=sorted([r for r in rows if r["group"]=="scale" and r["source_gbps"]==bw
                        and r["policy"]==p and r["seeds"]==k],key=lambda r:r["n"])
-            label={"single":"Single source","multi":f"{k} preloaded seeds","p2p":"P2P pipeline"}[p]
+            label={"single":"Single source","multi":f"{k} preloaded seeds","p2p":"Fixed chain"}[p]
             ax.plot([r["n"] for r in rr],[r["time_s"] for r in rr],"o-",label=label,color=color)
         ax.set(title=f"Effective endpoint budget: {bw:g} GB/s (assumed)",xlabel="Empty receiving nodes",ylabel="All nodes data-ready (s)",yscale="log")
         ax.grid(alpha=.2); ax.legend(fontsize=8)
     fig.suptitle("140 GB per node | warm source | 250 MB chunks | simulation, not hardware results")
     fig.savefig(ROOT/"figures/scaling.png"); plt.close(fig)
 
-    names=["fabric_10","fabric_100","sink_1","memory_10","peer_upload_1","slow_peer_0.1","fast_source_200","rack_2_local","rack_2_random"]
+    names=["fabric_10","fabric_100","sink_1","memory_10","peer_upload_1","slow_peer_0.1","rack_2_local","rack_2_random"]
     fig,ax=plt.subplots(figsize=(12,5),layout="constrained")
     yy=np.arange(len(names))
     for offset,p,color in [(-.18,"single",colors[0]),(.18,"p2p",colors[3])]:
         labels_available={r['label']:r for r in rows}
         values=[labels_available.get(name+"_single_wide",labels_available[name+"_single"])["time_s"]
                 if p=="single" else labels_available[name+"_p2p"]["time_s"] for name in names]
-        bars=ax.barh(yy+offset,values,height=.35,label=p,color=color)
+        bars=ax.barh(yy+offset,values,height=.35,label={"single":"Single W=100","p2p":"Fixed chain W=1"}[p],color=color)
         ax.bar_label(bars,fmt="%.1f",padding=3,fontsize=8)
     ax.set(yticks=yy,yticklabels=names,xscale="log",xlabel="All nodes data-ready (s), log scale",
-           title="Bottlenecks | N=100, S=140 GB | single-source window=100")
+           title="Bottlenecks | N=100, S=140 GB | single W=100 vs chain W=1")
     ax.invert_yaxis();ax.legend();ax.grid(axis="x",alpha=.2)
     fig.savefig(ROOT/"figures/bottlenecks.png");plt.close(fig)
 
@@ -115,23 +115,23 @@ def plots(rows):
     src=sorted([r for r in rows if r["group"]=="source" and r["policy"]=="single"],key=lambda r:r["source_gbps"])
     p2p=sorted([r for r in rows if r["group"]=="source" and r["policy"]=="p2p"],key=lambda r:r["source_gbps"])
     axs[1].plot([r["source_gbps"] for r in src],[r["time_s"] for r in src],"o-",label="Single",color=colors[0])
-    axs[1].plot([r["source_gbps"] for r in p2p],[r["time_s"] for r in p2p],"o-",label="P2P, FIFO window=100",color=colors[3])
+    axs[1].plot([r["source_gbps"] for r in p2p],[r["time_s"] for r in p2p],"o-",label="Chain, FIFO window=100",color=colors[3])
     tuned=sorted([r for r in rows if r["group"]=="source_tuned"],key=lambda r:r["source_gbps"])
     if tuned:
-        axs[1].plot([r["source_gbps"] for r in tuned],[r["time_s"] for r in tuned],"s--",label="P2P, window=1",color=colors[1])
+        axs[1].plot([r["source_gbps"] for r in tuned],[r["time_s"] for r in tuned],"s--",label="Chain, window=1",color=colors[1])
     axs[1].set(xscale="log",yscale="log",xlabel="Source payload budget (GB/s)",ylabel="Data-ready (s)",title="Source bandwidth sensitivity; peers fixed at 10 GB/s")
     axs[1].legend();axs[1].grid(alpha=.2)
     fig.savefig(ROOT/"figures/sensitivity.png");plt.close(fig)
 
     fig,axs=plt.subplots(1,2,figsize=(12,4.2),layout="constrained")
     rr=[next(r for r in rows if r["label"]==f"B10_N100_{p}{k}") for p,k in [("single",1),("multi",4),("multi",8),("p2p",1)]]
-    labels=["Single","4 seeds","8 seeds","P2P"]
+    labels=["Single","4 seeds","8 seeds","Chain"]
     axs[0].bar(labels,[r["source_gb"] for r in rr],label="Seed egress",color=colors[0])
     axs[0].bar(labels,[r["peer_gb"] for r in rr],bottom=[r["source_gb"] for r in rr],label="Peer egress",color=colors[3])
     axs[0].set(ylabel="Logical transferred GB",title="Same 14,000 GB total; different senders")
     axs[0].legend()
     axs[1].bar(labels,[r["peak_total_gbps"] for r in rr],color=colors)
-    axs[1].set(ylabel="Aggregate logical payload GB/s",title="P2P can INCREASE aggregate instantaneous load")
+    axs[1].set(ylabel="Aggregate logical payload GB/s",title="Chain can INCREASE aggregate instantaneous load")
     fig.savefig(ROOT/"figures/traffic.png");plt.close(fig)
 
 
@@ -143,10 +143,8 @@ def main():
     if a.plots_only:
         plots(json.loads((ROOT/"results.json").read_text()));return
     jobs=scenarios();results=[]
-    if a.resume and (ROOT/"results.json").exists():
-        results=json.loads((ROOT/"results.json").read_text())
-        done={r["label"] for r in results}
-        jobs=[j for j in jobs if j[1] not in done]
+    if a.resume:
+        p.error("--resume disabled: historical results have no code fingerprint; run fully or use --plots-only")
     with ProcessPoolExecutor(max_workers=a.workers) as pool:
         futures={pool.submit(execute,j):j for j in jobs}
         for i,f in enumerate(as_completed(futures),1):

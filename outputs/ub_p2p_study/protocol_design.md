@@ -1,6 +1,8 @@
 # UB＋P2P 分层协议与接口设计
 
-**设计草案 v0.1｜2026-09-18｜待实现、待硬件验证**
+**设计草案 v0.2｜2026-09-18｜待实现、待硬件验证**
+
+本文件是可选原型契约，尚未选定生产组件；应先评估现有缓存/分发系统是否能够复用所需能力，再决定是否实现这些 RPC。它不构成已交付的协议栈。
 
 本补充将方案从“带宽与分块策略”推进到“组件之间如何协作”。定义的是项目自有的应用层分发协议，不扩展或重新定义 UB 硬件协议。附带 `.proto` 可用于生成服务接口；`transport_interface.py` 只表达本地调用契约，没有实现传输后端。
 
@@ -43,17 +45,19 @@ P2P 不要求删除协调器。数据由节点相互提供已经构成 P2P 分�
 |LocateChunk|接收方→协调器|清单摘要、chunk_id|返回可用源的会话、地址和能力；结果只是候选|
 |AcquireReadLease|接收方→源 Peer|预期源会话、块、可接受后端、是否允许回退|源再次确认块存在，锁定 generation，返回读授权和限额|
 |RenewReadLease|接收方→源 Peer|lease_id、transfer_id|延长接受新操作的时间；不改变块内容|
-|ReportChunk|Agent→协调器|块状态、cache_generation、单调 state_sequence|只让已校验块进入位置目录；更新丢弃旧序号|
+|ReportChunk|Agent→协调器|块状态、cache_generation、单调 state_sequence|只让已校验块进入位置目录；按同一会话、同一 Manifest、同一块丢弃旧序号|
 |ReleaseReadLease|接收方→源 Peer|停止提交、在途操作已排空、租约和尝试 ID|源确认可释放该租约；无法确认时隔离，不能提前复用|
 
 ### 3.1 标识与幂等
 
 - `manifest_sha256`：对交付的规范化 JSON 原始字节做 SHA-256；发布后不得重写这些字节。加载方校验原始字节及解析约束，不能对任意重排后的 JSON 重新哈希后冒认为同一版本。
 - `ChunkSpec`：相对文件路径、文件偏移、长度、payload_sha256、shard_id。禁止绝对路径和 `..`；同一文件块范围必须覆盖预期数据且不得意外重叠；源和目标都检验边界。所有长度单位为 byte。
-- `peer_id + boot_id`：每次 Agent 重启使用新的随机 boot_id，旧源描述符失效。协调器 epoch 变化必须重新加入，旧会话操作拒绝。
+- `peer_id + boot_id`：每次 Agent 重启使用新的随机 boot_id，旧授权在应用层被拒绝；这不会自动撤销硬件描述符。旧注册区必须完成设备支持的撤权、fence/drain，或保持隔离直到确认不再有远端访问。协调器 epoch 变化必须重新加入，旧会话操作拒绝。
 - `request_id`：在已认证身份、会话和 RPC 名称内去重。同 ID 同参数返回原结果；同 ID 不同参数返回错误。去重记录覆盖租约存续期及约定重试窗口；未知结果不得盲目分配第二个缓冲。
 - `transfer_id`：一次尝试一个新值，与所有子操作完成事件绑定。重试换源/换后端必须生成新 transfer_id。
 - `cache_generation`：区分同一内存槽的不同内容周期；完成事件还需关联本地 buffer generation。迟到完成不能把复用后的槽标成已完成。
+
+`state_sequence` 按 `(caller session, manifest_sha256, chunk_id)` 单调递增，而非按整个 Agent 全局丢弃低序号消息。否则两个不同块的报告乱序会造成状态丢失。同一块只接受更高序号；相同序号必须内容相同。更新还须验证会话和 cache_generation，旧 generation 不得覆盖新状态。
 
 首次 Join 的 caller 携带预配置 peer_id 与新 boot_id，coordinator_epoch=0；服务端根据已认证身份决定最终 peer_id，并返回当前 epoch。其余 RPC 必须使用返回的会话。
 
@@ -61,7 +65,7 @@ P2P 不要求删除协调器。数据由节点相互提供已经构成 P2P 分�
 
 ### 3.2 能力协商与降级
 
-源和目标的能力交集决定后端。URMA 后端至少核对访问路径、provider/ABI profile、内存类型、最大操作长度、在途数量和可用注册缓冲。首版仅定义主机 DDR→DDR；HBM 不是默认支持项。
+源和目标的能力交集决定后端；AcquireRequest.receiver_capabilities 显式携带本次接收方能力，acceptable_backends 仅表达允许集合。URMA 后端至少核对访问路径、provider/ABI profile、内存类型、最大操作长度、在途数量和可用注册缓冲。首版仅定义主机 DDR→DDR；HBM 不是默认支持项。
 
 `selected_backend` 必须显式返回，并与响应的 oneof 描述符一致。UB 性能实验要求 `allow_tcp_fallback=false`，无 UB 能力就明确失败。业务环境可显式允许回退；先取消并排空旧尝试，分配新尝试 ID，再通过 TCP 整块重试，并统计 fallback 次数和字节。
 
@@ -69,7 +73,7 @@ P2P 不要求删除协调器。数据由节点相互提供已经构成 P2P 分�
 
 ### 3.3 流控、重试与错误
 
-源同时限制活跃租约数、逻辑上传字节率和在途读取授权预算；目标根据本地缓冲/校验能力控制最大在途 byte 和操作数。逻辑分块大小、URMA WR 长度和队列深度是三个独立参数，250 MB 分块不等于一个 250 MB WR，更不等于 UB MTU。
+源限制活跃租约数和在途读取授权预算；接收方按约定速率节流并控制最大在途 byte 和操作数。对于单边 READ，发放租约本身不能强制限制远端读取速率；强制带宽隔离依赖经验证的设备/QoS 能力，否则只是合作式限速。逻辑分块大小、URMA WR 长度和队列深度是三个独立参数，250 MB 分块不等于一个 250 MB WR，更不等于 UB MTU。
 
 若一个 chunk 被拆为多个操作，使用不相交且完整覆盖 `[0, length)` 的范围，只有全部完成且状态成功后才能进入 VERIFYING。任何子操作失败都不得发布半块。首版整块重试，不支持跨尝试拼接未验证数据，也不支持部分块续传。
 
@@ -102,6 +106,8 @@ P2P 不要求删除协调器。数据由节点相互提供已经构成 P2P 分�
 独立的校验/缓存层消费成功完成事件，核对 manifest、长度、来源 generation、本地 buffer generation 和块哈希，之后原子发布。状态机由缓存层拥有，传输后端不能自行把块标成可供数。
 
 ### 4.2 TCP 基线
+
+控制面 TLS 不意味着 UB 数据面已加密。TCP/TLS 与 URMA 的加密、复制和 CPU 路径不同，直接对照只能测量两套实现的端到端差异；需要记录安全配置并尽可能匹配语义，再辅以底层微基准，才能分析收益来源。
 
 草案使用 gRPC server-streaming `TcpPayload.ReadChunk`，它承载在 HTTP/2/TLS/TCP 上，**仅作为当前 TCP baseline 后端**。每帧含 transfer_id、块内偏移、payload 与结束标记。首版要求从零连续递增、每帧 payload≤1 MiB、不重复不重叠；最后一帧标记结束且累计长度必须等于 Manifest。中断、截断或多余字节均整块失败。
 

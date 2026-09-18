@@ -1,6 +1,6 @@
-2026-09-18 application protocol draft validation
+2026-09-18 application protocol draft v0.2 validation
 grpcio-tools 1.80.0
 PASS: protoc Python and gRPC generation; generated modules import
-PASS: 3 services / 9 RPCs; fallback defaults false; oneof round-trip
+PASS: 3 services / 9 RPCs; receiver capabilities round-trip; fallback defaults false; oneof round-trip
 PASS: local transport interface Python syntax
 NOT TESTED: running RPC service, transport backend, state machine, URMA hardware

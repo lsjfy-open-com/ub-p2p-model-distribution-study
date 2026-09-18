@@ -26,7 +26,7 @@ def canvas(h):
 
 fig,ax=canvas(9.8)
 text(ax,6.5,9.4,'UB＋P2P：调度模式与传输协议分层',21)
-text(ax,6.5,8.95,'方案草案 v0.1｜控制面可用 TCP，模型数据可走原生 UB',12,GRAY)
+text(ax,6.5,8.95,'方案草案 v0.2｜控制面可用 TCP，模型数据可走原生 UB',12,GRAY)
 box(ax,3.9,7.7,5.2,.8,'协调器：Manifest · 分块位置 · 拓扑 · 限流','#edf2fa',14)
 for x in [1.7,5.5,9.8]:
     arrow(ax,6.5,7.7,x,6.65,dashed=True,color=BLUE)
@@ -45,12 +45,12 @@ box(ax,1,1.8,5,1.1,'TCP 后端：基线待实现\n长度分帧 / 流式接收 �
 box(ax,7,1.8,5,1.1,'UB 后端：未来实现\n内存注册 / 导入 → URMA READ → JFC','#edf6f4',12)
 text(ax,6.5,1.3,'两种后端择一传块，使用相同 Manifest 和校验；禁止静默回退',12)
 text(ax,6.5,.72,'不新增 UB 硬件协议；应用层约定分块、租约、幂等、发布与故障处理',12)
-text(ax,6.5,.27,'本图为工程设计；现有 122 组实验只模拟带宽、分块依赖和调度。',11,GRAY)
+text(ax,6.5,.27,'本图为工程设计；历史 122 条记录（113 个配置）只模拟带宽、分块依赖和调度。',11,GRAY)
 fig.savefig(ROOT/'figures/architecture.png',dpi=180);plt.close(fig)
 
 fig,ax=canvas(12)
 text(ax,6.5,11.6,'一个分块如何通过 UB 拉取并成为新的数据源',20)
-text(ax,6.5,11.1,'v0.1 首选 READ｜本地完成、内容校验和服务就绪是不同事件',12,GRAY)
+text(ax,6.5,11.1,'v0.2 首选 READ｜本地完成、内容校验和服务就绪是不同事件',12,GRAY)
 xs=[1.35,4.65,8,11.45]
 for x,name in zip(xs,['协调器','源 Peer A','接收 Peer B','后续 Peer C']):
     box(ax,x-1.1,10.25,2.2,.55,name,size=12)
@@ -71,3 +71,22 @@ text(ax,6.5,.6,'租约过期≠在途 DMA 已结束；超时必须取消、排�
 text(ax,6.5,.2,'步骤 8 与 9 可按依赖并行；源块在所有读取租约结束前必须保持不可变。',11,GRAY)
 fig.savefig(ROOT/'figures/chunk_sequence.png',dpi=180);plt.close(fig)
 print('Rendered architecture.png and chunk_sequence.png')
+
+fig,ax=canvas(8.4)
+text(ax,6.5,8.05,'同一份权威模型 ≠ 全系统只有一份数据',21)
+text(ax,6.5,7.55,'本研究：启动前的分块分发；不模拟运行时跨节点共享权重',13,GRAY)
+box(ax,.35,5.5,2.5,1.15,'热种子\n持有完整模型 S',size=14)
+box(ax,4,5.5,2.4,1.15,'Peer A\n接收、校验、转发',size=13)
+box(ax,7.4,5.5,2.4,1.15,'Peer B\n接收、校验、转发',size=13)
+box(ax,10.7,5.5,1.95,1.15,'… Peer N\n本地缓存',size=13)
+arrow(ax,2.85,6.1,4,6.1,'块 j',dy=.3)
+arrow(ax,6.4,6.1,7.4,6.1,'块 j',dy=.3)
+arrow(ax,9.8,6.1,10.7,6.1,'块 j',dy=.3)
+text(ax,6.5,4.95,'固定链实验：源共发 S；Peer 共发 (N−1)S；最终客户端缓存共 NS',13,TEAL)
+box(ax,.35,3.45,5.9,.95,'当前已执行：资源与调度模拟\n带宽预算、分块依赖、固定链；无网络协议',fill='#edf2fa',size=13)
+box(ax,6.65,3.45,6,.95,'后续实机：同一分发逻辑切换后端\nTCP baseline → UB / URMA READ',size=13)
+
+box(ax,.35,1.85,12.3,.95,'分发完成后：模型加载 → 权重进入 HBM → warmup → 服务 ready\n本次均未模拟；这些阶段必须在 Ascend 实机另行测量',fill='#f1f4f7',size=13)
+text(ax,6.5,1.15,'前提：每个节点需要完整 S。若按 shard 部署，应按各节点实际缺块重新建模。',12)
+text(ax,6.5,.6,'P2P 选择数据来源；UB 提供传输路径。共享 fabric 受限时，两者都无法突破容量上限。',12,GRAY)
+fig.savefig(ROOT/'figures/overview.png',dpi=180);plt.close(fig)

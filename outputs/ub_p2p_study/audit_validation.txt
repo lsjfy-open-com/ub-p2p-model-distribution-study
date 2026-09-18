@@ -1,0 +1,23 @@
+test_invalid_configuration_rejected (test_simulator.InputValidationTests) ... ok
+test_allocator_redistributes (test_simulator.Tests) ... ok
+test_allocator_shared_source (test_simulator.Tests) ... ok
+test_global_bottleneck (test_simulator.Tests) ... ok
+test_memory_bottleneck (test_simulator.Tests) ... ok
+test_multiple_seeds_analytic (test_simulator.Tests) ... ok
+test_one_chunk_chain (test_simulator.Tests) ... ok
+test_one_peer (test_simulator.Tests) ... ok
+test_p2p_conservation (test_simulator.Tests) ... ok
+test_partial_last_chunk (test_simulator.Tests) ... ok
+test_pipeline_closed_form (test_simulator.Tests) ... ok
+test_repeatable (test_simulator.Tests) ... ok
+test_single_analytic (test_simulator.Tests) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 0.174s
+
+OK
+Recomputed B10_N100_p2p1 16.47700000000415
+Recomputed fabric_10_p2p 1400.0000240346014
+Recomputed source_200_single 70.00002
+Recomputed source200_peer1_p2p 164.52700000024225
+PASS: 122 records; 113 unique configurations; byte accounting, 3 closed forms, 4 reruns

@@ -69,7 +69,7 @@
 ## 7. UB 到货后补充实验
 
 1. 使用匹配硬件/驱动版本的 urma_admin 确认真实 UB 设备、EID、拓扑；使用 urma_perftest 测目标读写语义的大小/队列深度/多流曲线。
-2. 固定同一硬件，测试 TCP＋单源、TCP＋P2P、UB＋单源、UB＋P2P；只有网络路径变更的差异才可归为 UB 收益。
+2. 固定同一硬件，测试 TCP＋单源、TCP＋P2P、UB＋单源、UB＋P2P；该 2×2 对照首先测量两套实现的端到端效果，不能自动归因于 UB 硬件。必须记录并尽可能匹配加密、校验、缓存、复制、队列和 CPU 配额；配合微基准及设备计数器分解差异。
 3. 对主机 DDR↔DDR、主机↔NPU、跨机架分别验证，不能以一种路径替代另一种。
 4. 验证端到端完成语义、权限/Token 生命周期、Buffer 注册复用、故障重连、内存不足与退回 TCP；统计 fallback 次数，防止名为 UB 实则走 TCP。
 5. 在相同模型启动期间施加已有推理业务负载，观察服务干扰；初始 ring 需补慢 Peer 绕行/重选父节点和机架感知策略。
@@ -85,3 +85,7 @@ data_p50_s,data_p95_s,data_max_s,ready_p95_s,ready_max_s,
 source_peak_gbps,peak_sampling_ms,cpu_seconds,peak_rss_bytes,
 disk_read_bytes,disk_write_bytes,retries,fallbacks,hash_ok,first_request_ok
 ```
+
+## 审核后补充的先决条件
+
+先收集实际模型部署拓扑：独立服务副本数、每节点需要的 shard、分块需求矩阵、冷/热缓存和持久化要求。N 台服务器不默认各读完整 S；历史实验使用完整副本压力模型。分别报告制品分发完成、文件持久化完成、权重进入 HBM 和服务 ready 四个时刻。吞吐基准不要把序列化的单流配置作为单源唯一对照；双方分别调优后，再报告同参数对照。单权威版本不代表物理单副本，源仓库容灾策略应单独设计。

@@ -36,6 +36,29 @@ class Config:
     source_memory_gbps: float = 1e9
 
 
+def validate_config(c):
+    """Reject invalid budgets before constructing a simulation."""
+    for key in ("n", "seeds", "slots", "rack_size"):
+        value = getattr(c, key)
+        if type(value) is not int or value < 1:
+            raise ValueError(f"{key} must be a positive integer")
+    if type(c.random_seed) is not int or c.random_seed < 0:
+        raise ValueError("random_seed must be a nonnegative integer")
+    for key in ("size_gb", "chunk_gb", "source_gbps", "down_gbps", "peer_up_gbps",
+                "sink_gbps", "memory_gbps", "fabric_gbps", "rack_gbps",
+                "slow_factor", "source_memory_gbps"):
+        value = getattr(c, key)
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value <= 0:
+            raise ValueError(f"{key} must be finite and positive")
+    if not isinstance(c.hop_delay_s, (int, float)) or not math.isfinite(c.hop_delay_s) or c.hop_delay_s < 0:
+        raise ValueError("hop_delay_s must be finite and nonnegative")
+    for key, choices in (("policy", {"single", "multi", "p2p"}),
+                         ("ordering", {"local", "random"}),
+                         ("root_mode", {"fixed", "rotating"})):
+        if getattr(c, key) not in choices:
+            raise ValueError(f"unsupported {key}: {getattr(c, key)}")
+
+
 def max_min_rates(resource_lists, capacities):
     """Progressive filling: max-min fair rates over fixed active flow routes.
 
@@ -66,12 +89,7 @@ def max_min_rates(resource_lists, capacities):
 
 
 def simulate(c: Config, trace=False):
-    if c.policy not in {"single", "multi", "p2p"}:
-        raise ValueError(c.policy)
-    assert c.n >= 1 and c.slots >= 1 and c.seeds >= 1
-    assert all(getattr(c, k) > 0 for k in (
-        "size_gb", "chunk_gb", "source_gbps", "down_gbps", "peer_up_gbps",
-        "sink_gbps", "memory_gbps", "fabric_gbps", "rack_gbps", "slow_factor"))
+    validate_config(c)
     k = c.seeds if c.policy == "multi" else 1
     total = k + c.n
     chunks = math.ceil(c.size_gb / c.chunk_gb)

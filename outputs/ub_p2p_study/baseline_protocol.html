@@ -1,0 +1,110 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Ascend＋鲲鹏 TCP 实机基线实验规程</title><style>body{max-width:1080px;margin:48px auto;padding:0 28px;font:16px/1.85 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:#182c3a;background:#fff}h1{font-size:32px;line-height:1.4}h2{margin-top:56px;border-bottom:2px solid #138878;padding-bottom:8px}h3{margin-top:30px}table{border-collapse:collapse;width:100%;font-size:14px;display:block;overflow:auto}td,th{border:1px solid #dbe3e9;padding:9px 12px;text-align:left}th{background:#edf5f4}tr:nth-child(even){background:#f7f9fa}pre{background:#f1f5f8;padding:18px;border-radius:8px;white-space:pre-wrap;overflow-wrap:anywhere}code{font-family:ui-monospace,Menlo,monospace;font-size:.9em}img{width:100%;height:auto}blockquote{margin:24px 0;padding:14px 22px;background:#fff6df;border-left:4px solid #bc8a26}a{color:#087b73}p,li{overflow-wrap:anywhere}@media print{body{margin:0;max-width:none;font-size:10pt}h2{margin-top:24px;break-after:avoid}h3{break-after:avoid}table{font-size:8pt;display:table}pre{font-size:8pt}img{max-height:210mm;object-fit:contain}tr{break-inside:avoid}a{color:inherit}}</style><body><h1 id="ascend-tcp">Ascend＋鲲鹏 TCP 实机基线实验规程</h1>
+<p>状态：待执行。本交付实际执行的是 Python 仿真，没有连接或测试用户的 Ascend 集群。</p>
+<h2 id="1">1. 先固定实验对象</h2>
+<ul>
+<li>一次实验的 N 指实际接收节点数，不是 NPU 数、Pod 数或进程数。种子机器另计。</li>
+<li>固定模型版本、checkpoint 格式、实际字节数、文件清单、SHA-256，以及每个 rank 真正需要读取的 shard。</li>
+<li>如果 8 节点组成一个模型实例，每节点只读 1/8 权重，应使用需求矩阵 D[node,chunk]，不能沿用每节点全量 S 的本报告数值。</li>
+<li>容器镜像、Python 环境、模型文件、图编译缓存分别计时。第一轮预装镜像和运行时，只研究模型数据；第二轮再测完整业务启动。</li>
+<li>同节点多 Pod 用一次节点级缓存，避免把进程级重复读误认为跨节点必要流量。</li>
+</ul>
+<h2 id="2">2. 机器清单与瓶颈校准</h2>
+<p>记录 CPU/NPU 型号与数量、DDR 容量与 NUMA、NVMe/文件系统、网卡与端口、交换机上联与收敛比、OS/内核/CANN/推理框架版本、MTU、绑定 CPU、容器限制。记录是否共享其他业务流量。</p>
+<p>在独立实验窗口测：</p>
+<ol>
+<li>源节点到每个客户端的单流、多流单向吞吐；客户端之间同机架、跨机架吞吐。</li>
+<li>源节点同时向 1/2/4/8/... 客户端发送，得到总出口饱和曲线。</li>
+<li>双向并发收发，确认同一客户端能否在接收期间维持上传能力。</li>
+<li>模型文件冷读、热页缓存读、校验吞吐、本地写入与 fsync 分别计时。</li>
+<li>模型已在本地时的加载、H2D、初始化、warmup 和首个成功请求时间。</li>
+</ol>
+<p>可使用 iperf3、fio、iostat、sar、pidstat 和网卡/交换机计数器；先核对安装版本的参数。fio 只对专用测试文件操作，不对裸盘执行写测。不要在共享生产机器上全局清理 page cache；冷读应在隔离节点或足够大的独立数据集上验证。吞吐工具结果是校准输入，不能替代模型分发实验。</p>
+<h2 id="3">3. 对照组</h2>
+<table>
+<thead>
+<tr>
+<th>组</th>
+<th>开始前数据状态</th>
+<th>分发行为</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A 单源</td>
+<td>1 个热种子；客户端空</td>
+<td>客户端从单源读</td>
+<td>统一限速和校验</td>
+</tr>
+<tr>
+<td>B 同源多文件</td>
+<td>同一设备复制成 k 个路径</td>
+<td>与 A 一样</td>
+<td>路径增加不代表资源增加；记录去重/缓存变化</td>
+</tr>
+<tr>
+<td>C 多种子</td>
+<td>k=2/4/8 个独立热种子</td>
+<td>客户端均衡分配</td>
+<td>预热成本单列</td>
+</tr>
+<tr>
+<td>D P2P</td>
+<td>1 个热种子；客户端空</td>
+<td>收到完整校验块后转发</td>
+<td>首轮实现固定流水线以对应本仿真</td>
+</tr>
+<tr>
+<td>E 本地预置</td>
+<td>所有客户端已持有模型</td>
+<td>只本地加载</td>
+<td>业务启动参照</td>
+</tr>
+<tr>
+<td>F 实际生产路径</td>
+<td>保留现有 NFS/PV/对象存储路径</td>
+<td>按现有加载器行为</td>
+<td>独立业务基准，不能与 D 的协议差异混淆</td>
+</tr>
+</tbody>
+</table>
+<p>再增加全部源端冷读组，记录磁盘字节与网络字节；不要把“源端 page cache 热”误写为“每个客户端已经热”。</p>
+<h2 id="4">4. 统一实现与控制变量</h2>
+<p>建议 TCP 与未来 UB 后端共用 Manifest、分块布局、调度器、Buffer 生命周期、校验代码和指标接口。仅替换 send_chunk/read_chunk 后端。禁止一边关闭校验、另一边开启；禁止一边只收进内存、另一边计入写盘。</p>
+<p>纯传输比较 A/D 使用相同客户端与服务端程序，只切换是否允许客户端转发。源端与 Peer 分别扫 1/4/16/64 活跃流，而不是锁死一个对其中一组不利的并发值。P2P 的总出口来自多个机器，应明确上报新增资源利用率。</p>
+<p>初始 chunk 可扫 4/16/64/256 MiB。报告仿真采用十进制 MB，实测 MiB 要转换为字节，避免混用。</p>
+<h2 id="5">5. 计时与采样</h2>
+<ul>
+<li>准備阶段完成连接、目录、元数据和 barrier；明确连接建立是否计入。</li>
+<li>控制器发送一次开始令牌；使用单调时钟测节点持续时间，控制器测端到端 makespan。</li>
+<li>分别记录 first_byte、last_byte、hash_ok、file_committed、model_loaded、warmup_done、first_success。</li>
+<li>100 ms～1 s 采样源端/Peer/交换机端口吞吐；峰值必须说明采样间隔。</li>
+<li>记录累计 wire bytes 与 application bytes。它们与仿真的逻辑 payload 字节不同。</li>
+<li>每组至少重复 5 次；首轮跑 1/2/4/8/... 的物理节点阶梯，50/100 节点只能在足够实机上声称验证。</li>
+<li>随机交错不同方案执行顺序，避免后台负载和缓存变化的时间偏差。</li>
+<li>报告节点内 P50/P95/max 和跨次实验均值、范围/置信区间，不能把两种分布混为一谈。</li>
+</ul>
+<h2 id="6">6. 通过标准与证伪标准</h2>
+<p>正确性先于性能：文件/分块哈希与原始版本一致；失败重试不混版本；服务至少完成一个实际请求。</p>
+<p>性能评价使用四项联合指标：全体服务就绪耗时、源端累计字节与峰值、全网/机架流量、CPU/内存/SSD成本。不把“源端流量下降”单独当作业务加速。</p>
+<p>建议事先设定项目目标：例如数据阶段至少加速 2 倍、源端字节至少减少 80%、服务就绪 P95 有可重复改善，同时不突破线上服务的吞吐/尾延迟预算。这些是建议验收门槛，不是本次已达成的实机结果。</p>
+<p>若多源未快于单源，先检查所有流是否仍共用一个源磁盘、一个机架出口或一个存储后端；若 P2P 不快，检查 Peer 上传、共享 DDR 带宽、校验、慢节点和缓存介质。</p>
+<h2 id="7-ub">7. UB 到货后补充实验</h2>
+<ol>
+<li>使用匹配硬件/驱动版本的 urma_admin 确认真实 UB 设备、EID、拓扑；使用 urma_perftest 测目标读写语义的大小/队列深度/多流曲线。</li>
+<li>固定同一硬件，测试 TCP＋单源、TCP＋P2P、UB＋单源、UB＋P2P；该 2×2 对照首先测量两套实现的端到端效果，不能自动归因于 UB 硬件。必须记录并尽可能匹配加密、校验、缓存、复制、队列和 CPU 配额；配合微基准及设备计数器分解差异。</li>
+<li>对主机 DDR↔DDR、主机↔NPU、跨机架分别验证，不能以一种路径替代另一种。</li>
+<li>验证端到端完成语义、权限/Token 生命周期、Buffer 注册复用、故障重连、内存不足与退回 TCP；统计 fallback 次数，防止名为 UB 实则走 TCP。</li>
+<li>在相同模型启动期间施加已有推理业务负载，观察服务干扰；初始 ring 需补慢 Peer 绕行/重选父节点和机架感知策略。</li>
+<li>固定 seed/Peer 失败时刻、随机种子，测恢复耗时与额外源端读量。本次仿真未实现失败恢复，不预报这些结果。</li>
+</ol>
+<h2 id="8">8. 结果记录建议字段</h2>
+<pre><code class="language-text">run_id,model_sha256,model_bytes,rank_shards,physical_nodes,seeds,
+transport,policy,chunk_bytes,send_window,cache_state,numa_binding,
+source_payload_bytes,peer_payload_bytes,source_wire_bytes,cross_rack_bytes,
+data_p50_s,data_p95_s,data_max_s,ready_p95_s,ready_max_s,
+source_peak_gbps,peak_sampling_ms,cpu_seconds,peak_rss_bytes,
+disk_read_bytes,disk_write_bytes,retries,fallbacks,hash_ok,first_request_ok
+</code></pre>
+<h2 id="_1">审核后补充的先决条件</h2>
+<p>先收集实际模型部署拓扑：独立服务副本数、每节点需要的 shard、分块需求矩阵、冷/热缓存和持久化要求。N 台服务器不默认各读完整 S；历史实验使用完整副本压力模型。分别报告制品分发完成、文件持久化完成、权重进入 HBM 和服务 ready 四个时刻。吞吐基准不要把序列化的单流配置作为单源唯一对照；双方分别调优后，再报告同参数对照。单权威版本不代表物理单副本，源仓库容灾策略应单独设计。</p></body></html>

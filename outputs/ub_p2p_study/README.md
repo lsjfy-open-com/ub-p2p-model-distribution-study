@@ -4,7 +4,7 @@
 
 ## 文件
 
-- `protocol_design.html` / `protocol_design.md`：2026-09-18 新增的架构图、传输时序与协议草案（已并入主报告）。
+- `protocol_design.html` / `protocol_design.md`：2026-09-18 新增的架构图、传输时序与协议草案（独立工程附录，未实现）。
 - `protocol/model_distribution.proto`：自定义应用协议 schema；不等于 UB 底层协议，也不是运行中的服务。
 - `protocol/transport_interface.py`：本地传输接口契约，TCP/URMA 后端尚未实现。
 - `draw_protocol.py`：两张协议图的可编辑源；macOS 自动使用 PingFang，其他系统需配置中文字体。
@@ -13,7 +13,7 @@
 - `report.html` / `report.md`：研究报告、社区证据、规格与假设、计算、结果和工程方案。
 - `simulator.py`：分块离散事件模拟器；所有大小使用 GB，所有带宽使用 **GB/s**。
 - `run_experiments.py`：完整参数扫描与四张图。
-- `test_simulator.py` / `validation.txt`：12 项自动化测试及实际输出。
+- `test_simulator.py` / `validation.txt`：历史 12 项自动化测试及实际输出；新增检查见 audit_validation.txt。
 - `results.csv` / `results.json`：每个场景的完整参数与结果。
 - `environment.json` / `requirements-lock.txt`：实际执行环境和依赖版本。
 - `baseline_protocol.md`：现有 TCP 和未来 UB 实机对照规程，尚未执行。
@@ -49,7 +49,7 @@ python build_report.py
 
 完整重跑需要数分钟，主要耗时是 15.625 MB 分块的 100 节点场景。实际速度依赖本地 CPU；不会分配 14 TB 真实模型数据。内存中只保存块状态和事件。
 
-`--resume` 按已完成结果的 label 跳过场景，只适用于同一代码/参数版本的补跑；修改模型或场景后必须完整重跑，不能用 resume 冒充新结果。`--plots-only` 从现有 results.json 重画图。
+`--resume` 已禁用：历史结果没有代码指纹，按 label 跳过会混入不同版本；修改后应完整重跑。`--plots-only` 只从现有 results.json 重画图。
 
 ## 单独修改场景
 
@@ -71,4 +71,23 @@ python simulator.py --config example_config.json --output custom_result.json
 8. 结果小数用于复核，不表示真实机器有相应精度。
 9. 实际运行的 Python/依赖版本可见 environment.json 和 requirements-lock.txt；不同浮点环境可能产生极小差异。
 
-完整参数、引用与局限在报告正文。任何现场测试和硬件采购都需用实际拓扑、路径及版本校准。
+完整参数与历史结果在 experiment_details.md，审核结论在 audit_review.md。任何现场测试和硬件采购都需用实际拓扑、路径及版本校准。
+
+## 审核与本地项目位置
+
+本地目录：`/Users/shijieluan/Documents/Codex/2026-09-16/m/outputs/ub_p2p_study/`。
+Git 仓库根目录为上两级的 `m/`，分支 `codex/ub-p2p-study`。这是当前 workspace 内的文件夹，没有上传到远端。
+
+阅读顺序：report → audit_review → experiment_details → baseline_protocol → protocol_design。每份都有 Markdown 和 HTML；HTML 图片内嵌，文档间链接需要保留同目录文件。
+
+历史 122 条记录对应 113 个不同完整配置。此次审核保留 results.json/csv 原始字节，仅重跑代表场景并另存审计输出。
+
+```bash
+python -m unittest -v test_simulator.py
+python audit_results.py
+python draw_protocol.py
+python run_experiments.py --plots-only
+python build_report.py
+```
+
+`audit_results.py` 生成 audit_metrics.json；测试输出见 audit_validation.txt。各 GB/s 字段保持历史命名以兼容原始数据。构建顺序需先生成图，再生成 HTML。

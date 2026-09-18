@@ -1,0 +1,75 @@
+{
+  "records": 122,
+  "unique_configurations": 113,
+  "duplicate_groups": [
+    [
+      "chunk_0.25",
+      "delay_2e-05",
+      "B10_N100_p2p1",
+      "size_140_p2p",
+      "slots_1",
+      "source_10_p2p_window1"
+    ],
+    [
+      "fast_source_200_p2p",
+      "source_200_p2p"
+    ],
+    [
+      "fast_source_200_single",
+      "fast_source_200_single_wide",
+      "source_200_single"
+    ],
+    [
+      "B10_N100_single1",
+      "size_140_single"
+    ]
+  ],
+  "byte_accounting_checked_records": 122,
+  "byte_accounting_relative_tolerance": 1e-08,
+  "max_byte_accounting_relative_error": 1.4477028464909836e-09,
+  "closed_form_checks": [
+    {
+      "label": "B10_N50_p2p1",
+      "expected_s": 15.225999999999999,
+      "recorded_s": 15.226000000002712
+    },
+    {
+      "label": "B10_N100_p2p1",
+      "expected_s": 16.477,
+      "recorded_s": 16.47700000000415
+    },
+    {
+      "label": "B40_N100_p2p1",
+      "expected_s": 4.12075,
+      "recorded_s": 4.120750000006458
+    }
+  ],
+  "representative_reruns": [
+    {
+      "label": "B10_N100_p2p1",
+      "time_s": 16.47700000000415,
+      "matches_history": true
+    },
+    {
+      "label": "fabric_10_p2p",
+      "time_s": 1400.0000240346014,
+      "matches_history": true
+    },
+    {
+      "label": "source_200_single",
+      "time_s": 70.00002,
+      "matches_history": true
+    },
+    {
+      "label": "source200_peer1_p2p",
+      "time_s": 164.52700000024225,
+      "matches_history": true
+    }
+  ],
+  "source_data_sha256": {
+    "results.json": "076d0e19c8d10e8628de4bde7566635a853650c960219bafdd325ec625663cb9",
+    "results.csv": "24565c5424e5b675f4ff7686840604b83d0f4a0af8ad60f00ce5d81126a12e0d"
+  },
+  "simulator_sha256": "c16ecb5fcd468c7de940c68de82e8473e09b714712e1cb0e9aec01f161885837",
+  "disclaimer": "Resource/scheduling simulation only; no TCP/UB/Ascend hardware execution."
+}

@@ -53,5 +53,15 @@ class Tests(unittest.TestCase):
         c = Config(n=8,size_gb=2,ordering="random",random_seed=12,rack_size=2,rack_gbps=1)
         self.assertEqual(simulate(c),simulate(c))
 
+class InputValidationTests(unittest.TestCase):
+    def test_invalid_configuration_rejected(self):
+        from dataclasses import replace
+        cases = dict(n=0, rack_size=0, slots=1.5, seeds=True, random_seed=-1,
+                     hop_delay_s=-1, source_memory_gbps=0, down_gbps=float("nan"),
+                     size_gb=float("inf"), ordering="typo", root_mode="typo", policy="typo")
+        for key, value in cases.items():
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                simulate(replace(Config(), **{key: value}))
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
