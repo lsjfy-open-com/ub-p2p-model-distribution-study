@@ -75,8 +75,7 @@ python simulator.py --config example_config.json --output custom_result.json
 
 ## 审核与本地项目位置
 
-本地目录：`/Users/shijieluan/Documents/Codex/2026-09-16/m/outputs/ub_p2p_study/`。
-Git 仓库根目录为上两级的 `m/`，分支 `codex/ub-p2p-study`。这是当前 workspace 内的文件夹，没有上传到远端。
+项目交付目录：`outputs/ub_p2p_study/`；Git 仓库根目录为其上两级。研究工作分支为 `codex/ub-p2p-study`。
 
 阅读顺序：report → audit_review → experiment_details → baseline_protocol → protocol_design。每份都有 Markdown 和 HTML；HTML 图片内嵌，文档间链接需要保留同目录文件。
 
