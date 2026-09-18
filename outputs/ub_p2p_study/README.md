@@ -91,3 +91,7 @@ python build_report.py
 ```
 
 `audit_results.py` 生成 audit_metrics.json；测试输出见 audit_validation.txt。各 GB/s 字段保持历史命名以兼容原始数据。构建顺序需先生成图，再生成 HTML。
+
+## 草图映射部署图
+
+`figures/deployment_proposal.png` / `.svg`：保留容器 OM、Easysuit、Job、HOFS 与推理服务的部署提案；职责和待确认项见 `deployment_notes.md`。执行 `python draw_deployment.py` 可重新生成。
