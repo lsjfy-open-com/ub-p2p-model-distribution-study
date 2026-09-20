@@ -1,0 +1,372 @@
+{
+  "kind": "Analytical necessary conditions, not simulated completion or hardware data",
+  "assumptions": [
+    "no existing local chunks; each receiver needs full 140 GB",
+    "effective shared budget includes source and fabric constraints",
+    "receiver budget includes network and sustained SSD constraints",
+    "ignores startup, tail, hash, flush latency and model loading"
+  ],
+  "rows": [
+    {
+      "nodes": 10,
+      "model_gb": 140.0,
+      "distribution_budget_GBps": 4.0,
+      "effective_receiver_GBps": 1.0,
+      "lower_bound_s": 350.0,
+      "deadline_s": 300.0,
+      "necessary_conditions_met": false,
+      "source_limited_max_nodes": 8,
+      "per_node_fair_GBps": 0.4
+    },
+    {
+      "nodes": 10,
+      "model_gb": 140.0,
+      "distribution_budget_GBps": 4.0,
+      "effective_receiver_GBps": 4.0,
+      "lower_bound_s": 350.0,
+      "deadline_s": 300.0,
+      "necessary_conditions_met": false,
+      "source_limited_max_nodes": 8,
+      "per_node_fair_GBps": 0.4
+    },
+    {
+      "nodes": 10,
+      "model_gb": 140.0,
+      "distribution_budget_GBps": 10.0,
+      "effective_receiver_GBps": 1.0,
+      "lower_bound_s": 140.0,
+      "deadline_s": 300.0,
+      "necessary_conditions_met": true,
+      "source_limited_max_nodes": 21,
+      "per_node_fair_GBps": 1.0
+    },
+    {
+      "nodes": 10,
+      "model_gb": 140.0,
+      "distribution_budget_GBps": 10.0,
+      "effective_receiver_GBps": 4.0,
+      "lower_bound_s": 140.0,
+      "deadline_s": 300.0,
+      "necessary_conditions_met": true,
+      "source_limited_max_nodes": 21,
+      "per_node_fair_GBps": 1.0
+    },
+    {
+      "nodes": 10,
+      "model_gb": 140.0,
+      "distribution_budget_GBps": 40.0,
+      "effective_receiver_GBps": 1.0,
+      "lower_bound_s": 140.0,
+      "deadline_s": 300.0,
+      "necessary_conditions_met": true,
+      "source_limited_max_nodes": 85,
+      "per_node_fair_GBps": 1.0
+    },
+    {
+      "nodes": 10,
+      "model_gb": 140.0,
+      "distribution_budget_GBps": 40.0,
+      "effective_receiver_GBps": 4.0,
+      "lower_bound_s": 35.0,
+      "deadline_s": 300.0,
+      "necessary_conditions_met": true,
+      "source_limited_max_nodes": 85,
+      "per_node_fair_GBps": 4.0
+    },
+    {
+      "nodes": 10,
+      "model_gb": 140.0,
+      "distribution_budget_GBps": 100.0,
+      "effective_receiver_GBps": 1.0,
+      "lower_bound_s": 140.0,
+      "deadline_s": 300.0,
+      "necessary_conditions_met": true,
+      "source_limited_max_nodes": 214,
+      "per_node_fair_GBps": 1.0
+    },
+    {
+      "nodes": 10,
+      "model_gb": 140.0,
+      "distribution_budget_GBps": 100.0,
+      "effective_receiver_GBps": 4.0,
+      "lower_bound_s": 35.0,
+      "deadline_s": 300.0,
+      "necessary_conditions_met": true,
+      "source_limited_max_nodes": 214,
+      "per_node_fair_GBps": 4.0
+    },
+    {
+      "nodes": 50,
+      "model_gb": 140.0,
+      "distribution_budget_GBps": 4.0,
+      "effective_receiver_GBps": 1.0,
+      "lower_bound_s": 1750.0,
+      "deadline_s": 300.0,
+      "necessary_conditions_met": false,
+      "source_limited_max_nodes": 8,
+      "per_node_fair_GBps": 0.08
+    },
+    {
+      "nodes": 50,
+      "model_gb": 140.0,
+      "distribution_budget_GBps": 4.0,
+      "effective_receiver_GBps": 4.0,
+      "lower_bound_s": 1750.0,
+      "deadline_s": 300.0,
+      "necessary_conditions_met": false,
+      "source_limited_max_nodes": 8,
+      "per_node_fair_GBps": 0.08
+    },
+    {
+      "nodes": 50,
+      "model_gb": 140.0,
+      "distribution_budget_GBps": 10.0,
+      "effective_receiver_GBps": 1.0,
+      "lower_bound_s": 700.0,
+      "deadline_s": 300.0,
+      "necessary_conditions_met": false,
+      "source_limited_max_nodes": 21,
+      "per_node_fair_GBps": 0.2
+    },
+    {
+      "nodes": 50,
+      "model_gb": 140.0,
+      "distribution_budget_GBps": 10.0,
+      "effective_receiver_GBps": 4.0,
+      "lower_bound_s": 700.0,
+      "deadline_s": 300.0,
+      "necessary_conditions_met": false,
+      "source_limited_max_nodes": 21,
+      "per_node_fair_GBps": 0.2
+    },
+    {
+      "nodes": 50,
+      "model_gb": 140.0,
+      "distribution_budget_GBps": 40.0,
+      "effective_receiver_GBps": 1.0,
+      "lower_bound_s": 175.0,
+      "deadline_s": 300.0,
+      "necessary_conditions_met": true,
+      "source_limited_max_nodes": 85,
+      "per_node_fair_GBps": 0.8
+    },
+    {
+      "nodes": 50,
+      "model_gb": 140.0,
+      "distribution_budget_GBps": 40.0,
+      "effective_receiver_GBps": 4.0,
+      "lower_bound_s": 175.0,
+      "deadline_s": 300.0,
+      "necessary_conditions_met": true,
+      "source_limited_max_nodes": 85,
+      "per_node_fair_GBps": 0.8
+    },
+    {
+      "nodes": 50,
+      "model_gb": 140.0,
+      "distribution_budget_GBps": 100.0,
+      "effective_receiver_GBps": 1.0,
+      "lower_bound_s": 140.0,
+      "deadline_s": 300.0,
+      "necessary_conditions_met": true,
+      "source_limited_max_nodes": 214,
+      "per_node_fair_GBps": 1.0
+    },
+    {
+      "nodes": 50,
+      "model_gb": 140.0,
+      "distribution_budget_GBps": 100.0,
+      "effective_receiver_GBps": 4.0,
+      "lower_bound_s": 70.0,
+      "deadline_s": 300.0,
+      "necessary_conditions_met": true,
+      "source_limited_max_nodes": 214,
+      "per_node_fair_GBps": 2.0
+    },
+    {
+      "nodes": 100,
+      "model_gb": 140.0,
+      "distribution_budget_GBps": 4.0,
+      "effective_receiver_GBps": 1.0,
+      "lower_bound_s": 3500.0,
+      "deadline_s": 300.0,
+      "necessary_conditions_met": false,
+      "source_limited_max_nodes": 8,
+      "per_node_fair_GBps": 0.04
+    },
+    {
+      "nodes": 100,
+      "model_gb": 140.0,
+      "distribution_budget_GBps": 4.0,
+      "effective_receiver_GBps": 4.0,
+      "lower_bound_s": 3500.0,
+      "deadline_s": 300.0,
+      "necessary_conditions_met": false,
+      "source_limited_max_nodes": 8,
+      "per_node_fair_GBps": 0.04
+    },
+    {
+      "nodes": 100,
+      "model_gb": 140.0,
+      "distribution_budget_GBps": 10.0,
+      "effective_receiver_GBps": 1.0,
+      "lower_bound_s": 1400.0,
+      "deadline_s": 300.0,
+      "necessary_conditions_met": false,
+      "source_limited_max_nodes": 21,
+      "per_node_fair_GBps": 0.1
+    },
+    {
+      "nodes": 100,
+      "model_gb": 140.0,
+      "distribution_budget_GBps": 10.0,
+      "effective_receiver_GBps": 4.0,
+      "lower_bound_s": 1400.0,
+      "deadline_s": 300.0,
+      "necessary_conditions_met": false,
+      "source_limited_max_nodes": 21,
+      "per_node_fair_GBps": 0.1
+    },
+    {
+      "nodes": 100,
+      "model_gb": 140.0,
+      "distribution_budget_GBps": 40.0,
+      "effective_receiver_GBps": 1.0,
+      "lower_bound_s": 350.0,
+      "deadline_s": 300.0,
+      "necessary_conditions_met": false,
+      "source_limited_max_nodes": 85,
+      "per_node_fair_GBps": 0.4
+    },
+    {
+      "nodes": 100,
+      "model_gb": 140.0,
+      "distribution_budget_GBps": 40.0,
+      "effective_receiver_GBps": 4.0,
+      "lower_bound_s": 350.0,
+      "deadline_s": 300.0,
+      "necessary_conditions_met": false,
+      "source_limited_max_nodes": 85,
+      "per_node_fair_GBps": 0.4
+    },
+    {
+      "nodes": 100,
+      "model_gb": 140.0,
+      "distribution_budget_GBps": 100.0,
+      "effective_receiver_GBps": 1.0,
+      "lower_bound_s": 140.0,
+      "deadline_s": 300.0,
+      "necessary_conditions_met": true,
+      "source_limited_max_nodes": 214,
+      "per_node_fair_GBps": 1.0
+    },
+    {
+      "nodes": 100,
+      "model_gb": 140.0,
+      "distribution_budget_GBps": 100.0,
+      "effective_receiver_GBps": 4.0,
+      "lower_bound_s": 140.0,
+      "deadline_s": 300.0,
+      "necessary_conditions_met": true,
+      "source_limited_max_nodes": 214,
+      "per_node_fair_GBps": 1.0
+    },
+    {
+      "nodes": 200,
+      "model_gb": 140.0,
+      "distribution_budget_GBps": 4.0,
+      "effective_receiver_GBps": 1.0,
+      "lower_bound_s": 7000.0,
+      "deadline_s": 300.0,
+      "necessary_conditions_met": false,
+      "source_limited_max_nodes": 8,
+      "per_node_fair_GBps": 0.02
+    },
+    {
+      "nodes": 200,
+      "model_gb": 140.0,
+      "distribution_budget_GBps": 4.0,
+      "effective_receiver_GBps": 4.0,
+      "lower_bound_s": 7000.0,
+      "deadline_s": 300.0,
+      "necessary_conditions_met": false,
+      "source_limited_max_nodes": 8,
+      "per_node_fair_GBps": 0.02
+    },
+    {
+      "nodes": 200,
+      "model_gb": 140.0,
+      "distribution_budget_GBps": 10.0,
+      "effective_receiver_GBps": 1.0,
+      "lower_bound_s": 2800.0,
+      "deadline_s": 300.0,
+      "necessary_conditions_met": false,
+      "source_limited_max_nodes": 21,
+      "per_node_fair_GBps": 0.05
+    },
+    {
+      "nodes": 200,
+      "model_gb": 140.0,
+      "distribution_budget_GBps": 10.0,
+      "effective_receiver_GBps": 4.0,
+      "lower_bound_s": 2800.0,
+      "deadline_s": 300.0,
+      "necessary_conditions_met": false,
+      "source_limited_max_nodes": 21,
+      "per_node_fair_GBps": 0.05
+    },
+    {
+      "nodes": 200,
+      "model_gb": 140.0,
+      "distribution_budget_GBps": 40.0,
+      "effective_receiver_GBps": 1.0,
+      "lower_bound_s": 700.0,
+      "deadline_s": 300.0,
+      "necessary_conditions_met": false,
+      "source_limited_max_nodes": 85,
+      "per_node_fair_GBps": 0.2
+    },
+    {
+      "nodes": 200,
+      "model_gb": 140.0,
+      "distribution_budget_GBps": 40.0,
+      "effective_receiver_GBps": 4.0,
+      "lower_bound_s": 700.0,
+      "deadline_s": 300.0,
+      "necessary_conditions_met": false,
+      "source_limited_max_nodes": 85,
+      "per_node_fair_GBps": 0.2
+    },
+    {
+      "nodes": 200,
+      "model_gb": 140.0,
+      "distribution_budget_GBps": 100.0,
+      "effective_receiver_GBps": 1.0,
+      "lower_bound_s": 280.0,
+      "deadline_s": 300.0,
+      "necessary_conditions_met": true,
+      "source_limited_max_nodes": 214,
+      "per_node_fair_GBps": 0.5
+    },
+    {
+      "nodes": 200,
+      "model_gb": 140.0,
+      "distribution_budget_GBps": 100.0,
+      "effective_receiver_GBps": 4.0,
+      "lower_bound_s": 280.0,
+      "deadline_s": 300.0,
+      "necessary_conditions_met": true,
+      "source_limited_max_nodes": 214,
+      "per_node_fair_GBps": 0.5
+    }
+  ],
+  "illustrative_memory": {
+    "host_GiB": 512,
+    "store_GiB": 320,
+    "services_GiB": 96,
+    "reserve_GiB": 48,
+    "unallocated_GiB": 48,
+    "full_model_140GB_GiB": 130.385160446167,
+    "four_64MiB_double_buffers_GiB": 0.5
+  }
+}

@@ -94,3 +94,7 @@ python build_report.py
 ## 草图映射部署图
 
 `figures/deployment_proposal.png` / `.svg`：保留容器 OM、Easysuit、Job、HOFS 与推理服务的部署提案；职责和待确认项见 `deployment_notes.md`。执行 `python draw_deployment.py` 可重新生成。
+
+## 2026-09-20 容量与共存专题
+
+`ub_capacity_memory_evolution.md/html`：官方端口与功耗规格、待验证的功率关系、Mooncake 内存共存、SSD 预置及演进门槛。`python capacity_planning.py` 生成 64 个解析敏感性配置至 `capacity_planning.json`；这是必要条件计算，不是新硬件仿真或实机测量。
