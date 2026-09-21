@@ -66,13 +66,13 @@ def render(name, template=False):
         (ROOT/(name+'.md')).write_text(body)
     html = markdown.markdown(body, extensions=['tables','fenced_code','toc'])
     html = re.sub(r'src="(figures/[^\"]+\.png)"', embed, html)
-    for target in ('report','experiment_details','protocol_design','audit_review','baseline_protocol','ub_capacity_memory_evolution'):
+    for target in ('report','experiment_details','protocol_design','audit_review','baseline_protocol','ub_capacity_memory_evolution','ub_power_evidence'):
         html = html.replace('href="'+target+'.md"', 'href="'+target+'.html"')
     title = body.splitlines()[0].lstrip('# ')
     (ROOT/(name+'.html')).write_text('<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+title+'</title><style>'+css+'</style><body>'+html+'</body></html>')
 
 for name in ('report','experiment_details'):
     render(name, template=True)
-for name in ('protocol_design','audit_review','baseline_protocol','ub_capacity_memory_evolution'):
+for name in ('protocol_design','audit_review','baseline_protocol','ub_capacity_memory_evolution','ub_power_evidence'):
     render(name)
 print('Built separate report, experiments, protocol, audit and baseline documents')

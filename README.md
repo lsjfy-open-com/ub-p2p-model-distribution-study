@@ -9,6 +9,7 @@
 |内容|入口|
 |---|---|
 |UB 带宽/功耗、Mooncake 与 SSD 演进（2026-09-20）|[专题研究](outputs/ub_p2p_study/ub_capacity_memory_evolution.md)|
+|UB 带宽—功耗资料补充（2026-09-21）|[证据与缺失数据](outputs/ub_p2p_study/ub_power_evidence.md)|
 |完整研究报告|[report.md](outputs/ub_p2p_study/report.md)|
 |架构部署图及草图映射|[deployment_notes.md](outputs/ub_p2p_study/deployment_notes.md)|
 |PV / CSI / HOFS、FRP / SFTP 与 50 节点计算|[storage_bandwidth_faq.md](outputs/ub_p2p_study/storage_bandwidth_faq.md)|
