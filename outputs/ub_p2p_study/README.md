@@ -101,7 +101,9 @@ python build_report.py
 
 ## 2026-09-28 内存管理与同构节点专题
 
-优先阅读 `ub_memory_scale_assessment.md/html`：核对基础规范 2.0 第 9 章与 §8.2.6，区分远端映射、本地复制和多 Home 分片。新增结果不覆盖历史数据。
+优先阅读 `ub_memory_scale_assessment.md/html`：核对基础规范 2.1 第 9 章与 §8.2.6，区分远端映射、本地复制和多 Home 分片。新增结果不覆盖历史数据。
+
+`official_docs_review.md/html` 汇总本次五份官方原文的章节、物理 lane/端口速率、低功耗机制、内存管理及高阶缓存架构。`official_documents_manifest.json` 记录来源、文件校验值和两份许可待下载资料；不包含签署人的信息。
 
 ```bash
 python memory_scale_analysis.py

@@ -1,0 +1,85 @@
+{
+  "checked_on": "2026-09-28",
+  "source_site": "https://www.unifiedbus.com/en",
+  "scope": "Seven document families; original PDFs retained locally. No signer identity or personalized URLs in this manifest.",
+  "documents": [
+    {
+      "file": "UB-Base-Specification-2.1.0-en-clean.pdf",
+      "catalog_version": "2.1.0",
+      "language": "en",
+      "source": "user_provided",
+      "status": "available",
+      "public_download_url": "https://www.unifiedbus.com/api-server/web/v1/docs/en/file/UB-Base-Specification-2.1.0-en-clean.pdf/2.1.0",
+      "license_version": "v2",
+      "bytes": 15974381,
+      "sha256": "641a10ffcf48789af6f2392e8faab330b6d1e3d1fa447750ece7cd4ef578df82",
+      "pages": 613
+    },
+    {
+      "file": "UB-Software-Reference-Design-for-OS-2.0-zh.pdf",
+      "catalog_version": "2.0.0",
+      "language": "zh",
+      "source": "user_provided",
+      "status": "available",
+      "public_download_url": "https://www.unifiedbus.com/api-server/web/v1/docs/zh/file/UB-Software-Reference-Design-for-OS-2.0-zh.pdf/2.0.0",
+      "license_version": null,
+      "bytes": 1908315,
+      "sha256": "6297ed0af769a80891c7fa8911aa2f0ca452a1bbce2cc03f2ab6ab24ec47df11",
+      "pages": 57
+    },
+    {
+      "file": "UB-Service-Core-SW-Arch-RD-2.0-zh.pdf",
+      "catalog_version": "2.0.0",
+      "language": "zh",
+      "source": "official_download",
+      "status": "available",
+      "public_download_url": "https://www.unifiedbus.com/api-server/web/v1/docs/zh/file/UB-Service-Core-SW-Arch-RD-2.0-zh.pdf/2.0.0",
+      "license_version": null,
+      "bytes": 1168641,
+      "sha256": "13e8f1da824de892931653e17df2a8b20f77fe84b2a7472b13113405efbf296d",
+      "pages": 26
+    },
+    {
+      "file": "UB-Mgmt-OM-SW-Arch-and-IF-RD-2.0-zh.pdf",
+      "catalog_version": "2.0.0",
+      "language": "zh",
+      "source": "official_download",
+      "status": "available",
+      "public_download_url": "https://www.unifiedbus.com/api-server/web/v1/docs/zh/file/UB-Mgmt-OM-SW-Arch-and-IF-RD-2.0-zh.pdf/2.0.0",
+      "license_version": null,
+      "bytes": 856340,
+      "sha256": "0dc7cc57979b35869cd4a2a8af41c48ba1e9ba2732e5054031a7c9bfe2eebad6",
+      "pages": 28
+    },
+    {
+      "file": "UB-SuperPoD-Architecture-White-Paper-zh.pdf",
+      "catalog_version": "4.0.0",
+      "language": "zh",
+      "source": "official_download",
+      "status": "available",
+      "public_download_url": "https://www.unifiedbus.com/api-server/web/v1/white-paper/zh/file/UB-SuperPoD-Architecture-White-Paper-zh.pdf/4.0.0",
+      "license_version": null,
+      "bytes": 3472293,
+      "sha256": "b25cb2045381fccac162bef5513809a94d53caffdd1ad6369ac4c3e75da4bd30",
+      "pages": 29
+    },
+    {
+      "file": "UB-Firmware-Specification-2.0-en.pdf",
+      "catalog_version": "2.0.0",
+      "language": "en",
+      "source": "pending_identity",
+      "status": "pending_name_organization_email",
+      "public_download_url": "https://www.unifiedbus.com/api-server/web/v1/docs/en/file/UB-Firmware-Specification-2.0-en.pdf/2.0.0",
+      "license_version": "v1"
+    },
+    {
+      "file": "UB-Compatibility-Test-Specification-2.0-zh.pdf",
+      "catalog_version": "2.0.0",
+      "language": "zh",
+      "source": "pending_identity",
+      "status": "pending_name_organization_email",
+      "public_download_url": "https://www.unifiedbus.com/api-server/web/v1/docs/zh/file/UB-Compatibility-Test-Specification-2.0-zh.pdf/2.0.0",
+      "license_version": "v2"
+    }
+  ]
+}

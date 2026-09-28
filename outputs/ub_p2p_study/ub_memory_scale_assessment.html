@@ -3,45 +3,50 @@
 <p><strong>判断：集中只读 UB 是合理的首选基线，不能仅因有 50～100 个节点就断定必须 P2P。是否演进，取决于截止时间内 OM 的实际供数预算、接收节点 DRAM 的写入/转发预算、fabric 容量及业务干扰。UB 内存管理使远端内存可被安全访问，但不会使一份 OM 物理内存自动成为多个独立供数源。</strong></p>
 <p><strong>评估终点：所有接收节点的本地 DRAM 中完整模型包就绪，并满足约定的内存可见性与完整性条件。SSD 仅用于可选的后续留存，不是分发成功或模型可用的前置条件，不进入本次速率/时间公式。OM 预热、实际校验开销、模型加载及服务 READY 分阶段记录；本次仿真未计校验耗时。</strong></p>
 <h2 id="1">1. 原文核对与版本边界</h2>
-<p><a href="https://www.unifiedbus.com/zh">灵衢官网</a>当前展示基础规范 2.1。本次核对的完整文件是《灵衢基础规范》<strong>2.0，2025 年 9 月</strong>：官网旧版入口现在返回站点页面，因而使用<a href="https://github.com/codehubcloud/UnifiedBus/blob/master/UB-Base-Specification-2.0-zh.pdf">公开镜像</a>读取原出版物，并与 <a href="https://www.openeuler.org/zh/blog/20260206-SIG-Long_02/20260206-SIG-Long_02">openEuler 2026-02-06 的 OBMM 说明</a>引用的官网 2.0 文档和 §8.2.6 交叉核对。镜像不是官方发布渠道，未完成与官方文件的字节级一致性验证；本报告不声称已核对 2.1 的对应条款。文件 SHA-256：<code>ebed6871cd4681c49d672a2548067358dc23f1d97d258fe64277b912b9a458eb</code>。原 PDF 不进入本项目仓库。</p>
+<p>已核对用户从 <a href="https://www.unifiedbus.com/en">灵衢官网</a>下载的《UnifiedBus Base Specification》<strong>2.1，2026-09</strong> 原文，共 613 页。文件位于 <code>/Users/shijieluan/workspace/UnifiedBus-PV-Transfer/UB-Base-Specification-2.1.0-en-clean.pdf</code>，SHA-256：<code>641a10ffcf48789af6f2392e8faab330b6d1e3d1fa447750ece7cd4ef578df82</code>。同时核对 OS 参考设计 2.0 的第 4 章和 §5.3。此前引用的 2.0 镜像仅保留为历史资料，不再作为当前版本核对的替代。</p>
 <table>
 <thead>
 <tr>
-<th>核对位置（2.0 PDF 页码与印刷页码一致）</th>
+<th>核对位置（2.1 PDF 页码与印刷页码一致）</th>
 <th>规范事实的概括</th>
 <th>本方案的工程判断</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>§9.1～9.2，p259，图 9-1</td>
+<td>§9.1～9.2，p311～312，图 9-1</td>
 <td>Home 拥有物理内存；User 访问它；Home 侧 UMMU 做转换与访问控制</td>
 <td>所有描述符仍指向 OM 的同一内存时，增加 User 不等于增加物理供数源</td>
 </tr>
 <tr>
-<td>§9.3～9.4.1，p260～261</td>
+<td>§9.3～9.4.1，p312～314</td>
 <td>UBMD 包含 EID、TokenID、UBA；通过映射与权限表访问物理地址</td>
-<td>描述符是访问定位及授权信息，不是模型副本，也不保证目标数据在访问者的本地 DRAM</td>
+<td>描述符用于访问定位及授权，不是模型副本，也不保证目标数据在访问者本地 DRAM</td>
 </tr>
 <tr>
-<td>§9.4.4.3.4～5，p285</td>
+<td>§9.4.4.3.4～5，p341</td>
 <td>检查读、写、原子操作权限并综合转换权限</td>
-<td>分发已发布模型可只授予读权限；权限与版本生命周期必须一起管理</td>
+<td>分发已发布模型可只授读权限；权限与版本生命周期一起管理</td>
 </tr>
 <tr>
-<td>§9.5，p285～287</td>
+<td>§9.5，p341～343</td>
 <td>User 侧 Decoder 将地址转换成远端 UBMD</td>
-<td>远端地址映射不能直接计为 Peer 本地副本</td>
+<td>远端映射不能直接计为 Peer 本地副本</td>
 </tr>
 <tr>
-<td>§8.2.6，p247～249，图 8-9</td>
-<td>区分借用和共享；共享可有多个访问者；给出 Ownership 与缓存维护参考机制</td>
-<td>模型只读共享适合多读者；发布前完成写入和可见性处理，更新用新版本，避免读者访问期间原地覆盖</td>
+<td>§8.2.6，p298～301，图 8-9</td>
+<td>区分借用和共享；共享允许多读者，给出 Ownership/缓存维护参考机制</td>
+<td>只读共享适合模型访问；发布前完成写入和可见性处理，更新使用新版本</td>
+</tr>
+<tr>
+<td>OS 参考设计 2.0 §4.2.2、§4.3.2，p19～22</td>
+<td>IMPORT 上线为 NUMA node 或 char device，共享 mmap 直接使用远端内存</td>
+<td>本地完整包就绪需要显式复制到接收者物理 DRAM；不能用映射成功替代</td>
 </tr>
 </tbody>
 </table>
-<p><strong>这里没有“一条 DDR 通道只能服务一个节点”的规定，也没有“某个管理节点天然使用低速 UB”的规定。</strong> 通道数是物理供数能力，访问关系由 UB 地址、权限、路由和资源配置决定，两者不是一一对应。</p>
-<p>OBMM 是软件参考实现，其导入/导出与 NUMA.remote 能力支持上述访问模型；不能把内存借用、内存共享、URMA 传输和应用文件缓存视为同一个接口。第 9 章主要规定映射和授权，而缓存一致性相关的参考机制在 §8.2.6。规范允许软硬件实现选择，不能假定所有部署都具有自动全域缓存一致性。</p>
+<p>没有“一条 DDR 通道只能服务一个节点”或“应用 OM 必须使用低速 UB”的规定。通道数决定物理供数能力，访问关系由地址、权限、路由和资源配置决定，两者不是一一对应。</p>
+<p>OBMM、Load/Store 共享映射与 URMA 异步复制分别按其接口与可见性契约实现；不能把所有模式合并成同一个内存管理流程。基础规范 §8.2.6 允许软硬件实现选择，不能假定所有部署具有自动全域缓存一致性。<strong>lane/端口速率、低功耗机制、广播/组播和全局缓存的进一步核对见 <a href="official_docs_review.html">官方文档原文评审</a>。</strong></p>
 <h2 id="2">2. 三种不同的数据路径</h2>
 <pre><code class="language-text">A. 集中只读 UB
    OM 的本地 DRAM [完整模型 / Home]

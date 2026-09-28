@@ -8,6 +8,7 @@
 
 |内容|入口|
 |---|---|
+|官网 PDF 资料与 2.1 原文核对|[文档清单与方案依据](outputs/ub_p2p_study/official_docs_review.md)|
 |内存管理、通道数与同构节点规模判断（2026-09-28）|[综合评估及新增仿真](outputs/ub_p2p_study/ub_memory_scale_assessment.md)|
 |UB 带宽/功耗、Mooncake 与 SSD 演进（2026-09-20）|[专题研究](outputs/ub_p2p_study/ub_capacity_memory_evolution.md)|
 |UB 带宽—功耗资料补充（2026-09-21）|[证据与缺失数据](outputs/ub_p2p_study/ub_power_evidence.md)|
