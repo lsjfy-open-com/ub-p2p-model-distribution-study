@@ -1,6 +1,7 @@
 <!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>UB 内存管理、同读规模与 P2P：综合方案判断</title><style>body{max-width:1080px;margin:48px auto;padding:0 28px;font:16px/1.85 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:#182c3a;background:#fff}h1{font-size:32px;line-height:1.4}h2{margin-top:56px;border-bottom:2px solid #138878;padding-bottom:8px}h3{margin-top:30px}table{border-collapse:collapse;width:100%;font-size:14px;display:block;overflow:auto}td,th{border:1px solid #dbe3e9;padding:9px 12px;text-align:left}th{background:#edf5f4}tr:nth-child(even){background:#f7f9fa}pre{background:#f1f5f8;padding:18px;border-radius:8px;white-space:pre-wrap;overflow-wrap:anywhere}code{font-family:ui-monospace,Menlo,monospace;font-size:.9em}img{width:100%;height:auto}blockquote{margin:24px 0;padding:14px 22px;background:#fff6df;border-left:4px solid #bc8a26}a{color:#087b73}p,li{overflow-wrap:anywhere}@media print{body{margin:0;max-width:none;font-size:10pt}h2{margin-top:24px;break-after:avoid}h3{break-after:avoid}table{font-size:8pt;display:table}pre{font-size:8pt}img{max-height:210mm;object-fit:contain}tr{break-inside:avoid}a{color:inherit}}</style><body><h1 id="ub-p2p">UB 内存管理、同读规模与 P2P：综合方案判断</h1>
 <p>更新：2026-09-28。范围：140 GB 模型部署包从一个已预热的 OM 分发；OM 与业务节点使用相同硬件、相同 UB 接口配置。这里 N 是接收节点数，集群总数为 N+1；若集群总数为 50，公式中代 N=49。GB、GB/s 均采用十进制。</p>
-<p><strong>判断：集中只读 UB 是合理的首选基线，不能仅因有 50～100 个节点就断定必须 P2P。是否演进，取决于截止时间内 OM 的实际供数预算、节点落盘速度及业务干扰。UB 内存管理使远端内存可被安全访问，但不会使一份 OM 物理内存自动成为多个独立供数源。</strong></p>
+<p><strong>判断：集中只读 UB 是合理的首选基线，不能仅因有 50～100 个节点就断定必须 P2P。是否演进，取决于截止时间内 OM 的实际供数预算、接收节点 DRAM 的写入/转发预算、fabric 容量及业务干扰。UB 内存管理使远端内存可被安全访问，但不会使一份 OM 物理内存自动成为多个独立供数源。</strong></p>
+<p><strong>评估终点：所有接收节点的本地 DRAM 中完整模型包就绪，并满足约定的内存可见性与完整性条件。SSD 仅用于可选的后续留存，不是分发成功或模型可用的前置条件，不进入本次速率/时间公式。OM 预热、实际校验开销、模型加载及服务 READY 分阶段记录；本次仿真未计校验耗时。</strong></p>
 <h2 id="1">1. 原文核对与版本边界</h2>
 <p><a href="https://www.unifiedbus.com/zh">灵衢官网</a>当前展示基础规范 2.1。本次核对的完整文件是《灵衢基础规范》<strong>2.0，2025 年 9 月</strong>：官网旧版入口现在返回站点页面，因而使用<a href="https://github.com/codehubcloud/UnifiedBus/blob/master/UB-Base-Specification-2.0-zh.pdf">公开镜像</a>读取原出版物，并与 <a href="https://www.openeuler.org/zh/blog/20260206-SIG-Long_02/20260206-SIG-Long_02">openEuler 2026-02-06 的 OBMM 说明</a>引用的官网 2.0 文档和 §8.2.6 交叉核对。镜像不是官方发布渠道，未完成与官方文件的字节级一致性验证；本报告不声称已核对 2.1 的对应条款。文件 SHA-256：<code>ebed6871cd4681c49d672a2548067358dc23f1d97d258fe64277b912b9a458eb</code>。原 PDF 不进入本项目仓库。</p>
 <table>
@@ -44,15 +45,17 @@
 <h2 id="2">2. 三种不同的数据路径</h2>
 <pre><code class="language-text">A. 集中只读 UB
    OM 的本地 DRAM [完整模型 / Home]
-       ├─ UB 独立读取 → 节点 1 的接收内存或 SSD
-       ├─ UB 独立读取 → 节点 2 的接收内存或 SSD
-       └─ UB 独立读取 → 节点 N 的接收内存或 SSD
-   所有节点只导入 OM 的映射时，物理 Home 仍是 OM。
+       ├─ UB 独立读取 → 节点 1 本地 DRAM
+       ├─ UB 独立读取 → 节点 2 本地 DRAM
+       └─ UB 独立读取 → 节点 N 本地 DRAM
+   每个接收节点获得本地完整副本，这是本次 DRAM 就绪终点。
+   若只导入 OM 的远端映射，则属于另一种共享访问方案，不算本地副本就绪。
 
 B. UB + P2P
    OM 本地 DRAM → UB → 节点 1 本地物理块 → UB → 节点 2 本地物理块 → …
                           │                          │
-                          └─ SSD / 模型加载           └─ SSD / 模型加载
+                          └─ DRAM 本地模型加载       └─ DRAM 本地模型加载
+                          （SSD 后续留存可选，不阻塞 DRAM 就绪）
    Peer 只有获得本地可供数副本，才能真正分担 OM 的读取。
 
 C. 多 Home 的池化 / 分片
@@ -69,6 +72,7 @@ C. 多 Home 的池化 / 分片
 D_available = 实测可持续带宽 - 业务预留预算          [GB/s]
 示例计算用 D_available = η × D_peak，η=0.70
 B_OM = min(U, D_available/a, H)
+B_destination = min(节点 UB 接收预算, 节点 DRAM 写入预算, 接收侧内部路径预算)
 T_direct &gt;= max(N×S/B_OM, S/B_destination, N×S/F)
 </code></pre>
 <p>U 是<strong>单个同构节点</strong>的 UB 有效单向载荷总预算，聚合该节点可同时使用的端口，不是单交换机所有端口的总和；H 是片上互连、跨 NUMA、内存访问引擎等路径的实际限制。F 是全网应用载荷总吞吐预算，每个源到目的传输字节计一次；它不是交换机物理端口双向带宽总和。真实部署还需验证各拓扑割集。</p>
@@ -117,9 +121,8 @@ T_direct &gt;= max(N×S/B_OM, S/B_destination, N×S/F)
 <tr>
 <th>接收节点 N</th>
 <th style="text-align: right;">集群总节点</th>
-<th style="text-align: right;">U=200 GB/s，纯 UB 秒</th>
-<th style="text-align: right;">U=1000 GB/s，纯 UB 秒</th>
-<th>两种 U 下单节点 SSD=4 GB/s 的完成下界（秒，分别）</th>
+<th style="text-align: right;">U=200 GB/s，DRAM 就绪下界（秒）</th>
+<th style="text-align: right;">U=1000 GB/s，DRAM 就绪下界（秒）</th>
 </tr>
 </thead>
 <tbody>
@@ -128,40 +131,35 @@ T_direct &gt;= max(N×S/B_OM, S/B_destination, N×S/F)
 <td style="text-align: right;">2</td>
 <td style="text-align: right;">0.70</td>
 <td style="text-align: right;">0.49</td>
-<td>35 / 35</td>
 </tr>
 <tr>
 <td>10</td>
 <td style="text-align: right;">11</td>
 <td style="text-align: right;">7.00</td>
 <td style="text-align: right;">4.88</td>
-<td>35 / 35</td>
 </tr>
 <tr>
 <td>50</td>
 <td style="text-align: right;">51</td>
 <td style="text-align: right;">35.00</td>
 <td style="text-align: right;">24.41</td>
-<td>35 / 35</td>
 </tr>
 <tr>
 <td>100</td>
 <td style="text-align: right;">101</td>
 <td style="text-align: right;">70.00</td>
 <td style="text-align: right;">48.83</td>
-<td>70 / 48.83</td>
 </tr>
 <tr>
 <td>200</td>
 <td style="text-align: right;">201</td>
 <td style="text-align: right;">140.00</td>
 <td style="text-align: right;">97.66</td>
-<td>140 / 97.66</td>
 </tr>
 </tbody>
 </table>
 <p>同构意味着各节点拥有相同峰值能力，并不意味着单个 OM 的发送预算会随接收节点增加。8 通道被多个请求交错共享。N 增加后，平均节点带宽约为 <code>B_OM/N</code>；不是按节点独占一条内存通道，也不是每条连接都获得一个完整 U。</p>
-<p>例如 N=50、U=200 时，单节点约 4 GB/s。若终点是持续写 4 GB/s 的 SSD，纯 UB 已匹配落盘预算；引入 P2P 的主要价值转为 OM 负载隔离，而非必然缩短时间。N=100 时同源只能给每节点约 2 GB/s，纯 UB 约 70 秒，P2P 才有机会向 35 秒落盘下界靠近。此处 SSD 带宽也是假设，实际需测持续写和写放大。</p>
+<p>例如 N=50、U=200 时，集中同读平均给每节点约 4 GB/s；这里的 4 GB/s 是 OM 总供数预算被 50 个接收者共享的结果，不能用可选 SSD 的速率去限制它。P2P 若通过多个 Peer 的本地 DRAM 同时供数，有机会提高每节点实际接收速率，收益受 Peer 收发合计 DRAM 预算和全网容量约束。N=100 时集中同读平均约 2 GB/s，仍按相同的 DRAM 就绪标准比较两种方案。</p>
 <p>给定目标 T，源端允许的接收规模必要条件为：</p>
 <pre><code class="language-text">N &lt;= floor(B_OM × T / S)
 同时要求 B_destination &gt;= S/T，F &gt;= N×S/T，并满足各实际拓扑割集。
@@ -222,15 +220,24 @@ T_direct &gt;= max(N×S/B_OM, S/B_destination, N×S/F)
 </tbody>
 </table>
 <p>反过来按截止时间规划通道数，在 a=1、DDR5-6400、η=70% 下，<code>C_min = ceil(N×S / (35.84×T))</code>，还需 <code>U &gt;= N×S/T</code>。例如 50 个接收节点在 10 秒内完成 140 GB，每个 OM 必须提供 700 GB/s，内存至少需等效 20 条上述通道；100 个接收节点则需 1400 GB/s 与等效 40 条。这里“等效通道”是算术资源需求，不代表具体 CPU 支持这些配置。若 OM 的 U=1000 GB/s，100 节点 10 秒目标已被 UB 预算否决，继续添加 DRAM 通道也不能补救。</p>
-<p>这些是必要条件，不能当成保证。目标为 10 秒但 SSD=4 GB/s 时，任何 N≥1 都不满足，因为单节点落盘至少 35 秒。增加节点数、通道数或 P2P 都不能消除该终点限制。</p>
+<p>这些是必要条件，不能当成保证。除 OM 供数外，还必须满足接收节点 DRAM 可持续写入、可用容量、全网拓扑及在线业务预算。可选 SSD 留存的速度不参与该判断。</p>
 <h2 id="5-ub-p2p">5. UB + P2P：解决什么，又消耗什么</h2>
 <p>本研究中的固定链把每个模型块从 OM 注入一次，后续由持有本地块的 Peer 转发。OM 发出载荷由 N×S 降到 S，集群应用传输总量仍为 N×S。不是 UB 改变了 OM DRAM 的物理上限，而是实际供数位置扩展到多个节点。</p>
 <p>一个普通中继收到完整模型并转发一次，在本模型中对本地 DRAM 至少产生 S 的接收写入和 S 的转发读取。因此 N≥2 时，链式方案有如下必要下界：</p>
 <pre><code class="language-text">T_chain &gt;= max(S/min(U,D), 2S/D, NS/F)
 </code></pre>
-<p>这里 D 是相同的可用 DRAM 收发合计预算。若终点为 SSD，还要取 <code>max(..., S/B_SSD)</code>；网络接收后写 SSD 的 DMA 读取、校验与复制会增加 DRAM 开销。若边写 SSD 边从 DRAM 转发，常见路径可达每中继至少约 3S 的 DRAM 数据流量；若回读 SSD 再转发，另受 SSD 读写混合吞吐限制。以上按实际经过 DRAM 的实现分析，不覆盖直接设备对设备路径。</p>
-<p><strong>不建议为了分发在每个推理节点长期保留 140 GB DRAM 包副本。</strong> 默认落 SSD，使用独立且有界的接收/转发缓冲；明确容量、带宽、NUMA 位置和回收策略，避免挤占 Mooncake 或模型服务预算。SSD 不保证零内存占用，普通文件读写的 page cache 也需纳入；注册/锁定的 UB 缓冲尤其不能只依赖普通缓存回收。持久存储和可远程访问内存不是同一个资源。</p>
-<p>有限缓冲需要下游消费确认、窗口控制和背压，不能直接把本研究的完整 DRAM 接收仿真结果作为有限缓存 SSD 实现性能。若已就绪的 Peer 没有本地副本、只是再次读取 OM 的远端映射，就没有获得本方案预期的源端卸载。</p>
+<p>这里 D 是相同的可用 DRAM 收发合计预算。上述 2S/D 适用于每个完整包接收一次、转发一次的普通中继；最后一个接收节点不需要转发。校验、额外拷贝和模型加载会消耗额外 DRAM 带宽，应在真实实现中测量并预留。SSD 留存不是转发或模型可用的前置条件。</p>
+<h3 id="dram-mooncake">DRAM 容量与 Mooncake 共存</h3>
+<p>按本次全量副本方案，每个接收节点需要存放完整 S=140 GB 模型包。50 个接收节点合计需要 7000 GB，100 个需要 14000 GB，另计 OM 的 140 GB。这是分布在各机器上的容量，不能仅看集群总空闲内存。</p>
+<pre><code class="language-text">每节点可用物理 DRAM &gt;= 完整模型包 S
+                    + 不与包存储重叠的接收/注册缓冲
+                    + 该阶段加载/校验工作区峰值
+                    + 安全余量
+可用物理 DRAM = 物理容量 - Mooncake 等服务占用 - 其他常驻占用
+</code></pre>
+<p>共享映射、别名和复用缓冲须去重。若直接把接收目标注册到完整模型包存储区，不应再机械重复计算一份 S。若内存不足，应调整部署并发、服务预留或内存资源；不能用“只有少量 DRAM 缓冲，完整包写 SSD”替代当前的 DRAM 就绪要求。</p>
+<p>P2P Peer 在转发时还需保留被读取的块。模型加载与 Peer 租约结束前不能复用或释放这些块；加载后是否保留包由后续策略决定。SSD 可用于可选的后续留存，以供重启或回滚。在主性能对照中关闭该任务，或延后到 DRAM 就绪后启动；若另测同时留存，额外 DRAM/IO 干扰须单独报告，不能混入主结果。</p>
+<p>若 Peer 只是再次读取 OM 的远端映射，就没有获得本方案预期的源端卸载。真正的供数分散需要 Peer 本地 DRAM 中有可访问、不可变且仍有效的块副本。</p>
 <h2 id="6">6. 新增同构实验：下界与调度结果分开</h2>
 <p>运行 <code>python outputs/ub_p2p_study/memory_scale_analysis.py</code>，输出独立的 <code>memory_scale_results.json</code>，不覆盖历史实验。新增 30 个解析配置和 36 次分块流体离散事件仿真。参数：140 GB，250 MB 块，每跳发布延迟 20 μs，全网载荷预算 20000 GB/s，源与接收节点同构，内存数据已预热，终点为 DRAM；8/16 通道、U=200/1000 GB/s，N=10/50/100。</p>
 <p>纯 UB 的源并发窗口 W=N，允许同时服务全体节点。P2P 分别测试 W=N 与每个发送端 W=1，保持相同硬件预算，显式展示调度敏感性；不能把两种窗口混在同一条“P2P 性能”曲线中。仿真包含收发合计内存预算，不包含缓存一致性协议、具体 UMMU 时延、丢包、故障、校验、SSD 或业务负载。</p>
@@ -378,28 +385,28 @@ T_direct &gt;= max(N×S/B_OM, S/B_destination, N×S/F)
 </tr>
 <tr>
 <td>Peer 发布</td>
-<td>确认块在本地物理内存或本地 SSD；登记它自己的供数端点</td>
+<td>确认块在本地物理 DRAM；登记它自己的供数端点</td>
 <td>本地缓冲注册/访问权限和复用保护，不能把 OM 描述符冒充本地副本</td>
 </tr>
 <tr>
 <td>版本切换</td>
-<td>新版本预备完成后切换 manifest/本地文件引用</td>
+<td>新版本 DRAM 就绪后切换 manifest/本地内存引用</td>
 <td>旧版本读者退出后撤销授权、解除注册并回收；应用需处理在途请求与超时</td>
 </tr>
 <tr>
 <td>背压与隔离</td>
-<td>每租户/任务并发、字节额度、SSD 配额、可用 Peer 上限</td>
+<td>每租户/任务并发、DRAM 容量/带宽额度、可用 Peer 上限</td>
 <td>保留在线推理和 KV 服务的容量与带宽，按 NUMA 及拓扑限制分发</td>
 </tr>
 </tbody>
 </table>
-<p>此表补充既有 <a href="protocol_design.html">协议草案</a>。首期宜以 URMA 传块 + 本地 SSD 文件作为稳定交付边界。若采用远端内存映射让模型加载器直接读，需要额外解决加载器兼容、持有时间和 Home 故障依赖，不能默认等价于已下载到本地的文件。</p>
+<p>此表补充既有 <a href="protocol_design.html">协议草案</a>。首期按 URMA 传块 → 本地 DRAM 完整副本 → 内存可见/完整性确认发布就绪状态。对应 <code>VERIFIED_VOLATILE</code>；<code>VERIFIED_DURABLE</code> 仅表示可选留存已完成，不作为本次分发成功条件。实际模型加载器使用这些内存块的接口和工作区仍需实现验证。若只提供 OM 远端映射供加载器读取，应作为不同访问方式单独评估。</p>
 <h2 id="8">8. 最终选型与验证顺序</h2>
 <ol>
-<li><strong>先实现/测量纯 UB。</strong> OM 软件角色不降低其硬件规格。采用不可变模型版本，源 DRAM 预热、NUMA 放置合理，允许足够并发；保留 SSD 持久副本。用同步冷读扫 N，画出 OM UB、DRAM 与每节点速率曲线。</li>
-<li><strong>只在目标或隔离要求不满足时引入 P2P。</strong> 达到 OM 内存/UB 预算上限，且 Peer 有可用带宽、下游还未被 SSD 限制，才有明确的时延收益空间。即使落盘受限，也可因保护 OM 业务选择少量种子，但需计入种子准备成本。</li>
+<li><strong>先实现/测量纯 UB。</strong> OM 软件角色不降低其硬件规格。采用不可变模型版本，源 DRAM 预热、NUMA 放置合理，允许足够并发；接收节点开始前无模型副本。扫 N，画出 OM UB、DRAM、每节点接收写入速率及全体 DRAM 就绪耗时。</li>
+<li><strong>只在目标或隔离要求不满足时引入 P2P。</strong> 集中同读无法满足时间或业务隔离目标，且 Peer 的 DRAM 收发、UB 与 fabric 有余量时，验证本地块转发的收益；少量预热种子的准备成本单列。</li>
 <li><strong>演进为可选分发策略。</strong> 小规模集中读取；中规模分组/少量热种子；大规模按拓扑分块 P2P，或让模型分片驻留多个独立 Home。P2P 与多 Home 存储都必须确认物理数据确实分散，容量扩展不自动等于同一模型的供数扩展。</li>
 </ol>
-<p>现有 Ascend＋鲲鹏 TCP 环境可验证调度、块校验、SSD 写入、混合业务隔离及实际内存流量 a。测试应区分 OM 热缓存/冷存储、单源/多源、相同落盘条件和相同接收规模。该 baseline 不能验证 UB 端点速率、UMMU/Ownership 实现性能或 UB 全网拓扑性能。</p>
-<p>拿到 UB 机器后，至少测：①完整通道配置与实际 MT/s；②本地内存只读/读写混合持续带宽；③本地与跨 NUMA 的 UB 读取；④N=1/10/50/100 的集中同读；⑤同预算 P2P 两种窗口；⑥SSD 落盘与在线模型服务并行时的 p95/p99 延迟、KV 容量和吞吐。分发完成定义分别采用 DRAM 就绪、文件可见、持久化确认、服务 READY，禁止混作一个时间。</p>
-<p>结论的可证伪点很明确：若纯 UB 在目标 N 下已满足时间与业务隔离要求，则 P2P 的额外复杂度暂不必要；若单源不足而 Peer 和 fabric 有余量，则原生 UB 上的本地块转发是合理演进；若瓶颈在终点 SSD 或全网割集，先解决该瓶颈。</p></body></html>
+<p>现有 Ascend＋鲲鹏 TCP 环境可验证 DRAM 接收、分块调度、块校验、混合业务隔离及实际内存流量 a。主对照固定 OM 已预热、客户端无副本、相同接收规模和 DRAM 就绪条件。OM 冷存储预热与可选 SSD 留存单列。该 baseline 不能验证 UB 端点速率、UMMU/Ownership 实现性能或 UB 全网拓扑性能。</p>
+<p>拿到 UB 机器后，至少测：①完整通道配置与实际 MT/s；②本地内存只读/读写混合持续带宽；③本地与跨 NUMA 的 UB 读取；④N=1/10/50/100 的集中同读；⑤同预算 P2P 两种窗口；⑥DRAM 接收/转发与在线模型服务并行时的 p95/p99 延迟、KV 容量和吞吐。本次主指标为 DRAM 就绪；可选 SSD 留存完成和服务 READY 独立计时。</p>
+<p>结论的可证伪点很明确：若纯 UB 在目标 N 下已满足时间与业务隔离要求，则 P2P 的额外复杂度暂不必要；若单源不足而 Peer 和 fabric 有余量，则原生 UB 上的本地块转发是合理演进；若瓶颈在接收侧 DRAM 或全网割集，先定位该瓶颈；SSD 留存不参与主比较。</p></body></html>

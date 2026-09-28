@@ -110,3 +110,5 @@ python build_report.py
 ```
 
 `memory_scale_results.json` 包含 30 个解析配置与 36 次分块仿真；同构端点、DRAM 预算与窗口参数明确记录。原始官方 PDF 仅用于本地核对，不在仓库中重新分发。
+
+2026-09-28 口径修正：主方案是 OM DRAM → 节点本地 DRAM。SSD 仅可选后续留存，不参与主分发计时；36 次同构仿真原本就是 DRAM 接收，数值保持不变。

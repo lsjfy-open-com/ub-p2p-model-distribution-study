@@ -141,7 +141,7 @@ ABSENT → RESERVED → FETCHING → VERIFYING → VERIFIED → ADVERTISED
 - VERIFIED：内容完整并通过哈希，允许本地加载器获得只读引用。
 - ADVERTISED：已向目录发布，可以被定位；是否能授予新租约仍由源 Agent 再次检查。
 - DRAINING：先发布 UNAVAILABLE、拒绝新租约，等待已有读取和本地加载引用结束。
-- `VERIFIED_VOLATILE` 与 `VERIFIED_DURABLE` 区分内存可用和已达到约定持久化条件。URMA 完成不等于 fsync；本报告主仿真的终点对应内存可用，而不是 durable。
+- `VERIFIED_VOLATILE` 与 `VERIFIED_DURABLE` 区分内存可用和已达到约定持久化条件。URMA 完成不等于 fsync；本报告主仿真的终点为全体接收节点的完整模型包在本地 DRAM 可用（`VERIFIED_VOLATILE`）。SSD 是可选的后续留存；不得要求 `VERIFIED_DURABLE` 才确认本次分发成功或允许模型加载。
 - “所有需要的块已校验”只表示模型数据就绪。反序列化、H2D、初始化与 warmup 完成后，业务才进入 SERVICE_READY。
 
 源端在 Acquire 时增加租约引用，目标在读操作真正结束后才 Release。读失败、进程退出或网络分区时，单纯引用计数与 TTL 不足以保证安全：源必须撤销远端访问能力，并按设备支持的机制确认访问排空；不能确认时保留隔离缓冲/拒绝复用，必要时执行经平台定义的连接或设备恢复。具体 fence/drain 机制是 UB 集成验收前的阻断项。

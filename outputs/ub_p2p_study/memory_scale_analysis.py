@@ -23,8 +23,6 @@ def main():
                 bounds.append(dict(receivers=n, channels=channels, mt_s=RATE,
                     dram_peak_GB_s=peak, dram_budget_GB_s=dram, endpoint_GB_s=ub,
                     direct_lower_s=direct, chain_lower_s=p2p,
-                    direct_ssd4_lower_s=max(direct,S/4),
-                    chain_ssd4_lower_s=max(p2p,S/4),
                     n_max_10s=math.floor(source*10/S),
                     n_max_30s=math.floor(source*30/S)))
     for channels in (8, 16):
@@ -50,6 +48,8 @@ def main():
     out = dict(assumptions=dict(size_GB=S, mt_s=RATE, efficiency=EFF,
         fabric_GB_s=FABRIC, receive_dram_bytes_per_payload_byte=1,
         send_dram_bytes_per_payload_byte=1, source_hot=True,
+        completion_target="all_receivers_complete_local_DRAM_replica",
+        optional_ssd_persistence="after_DRAM_ready_not_in_critical_path",
         includes_ssd_simulation=False, includes_hardware_measurement=False),
         bounds=bounds, simulations=runs)
     (ROOT/'memory_scale_results.json').write_text(json.dumps(out,indent=2)+'\n')
