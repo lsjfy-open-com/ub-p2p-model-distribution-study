@@ -98,3 +98,15 @@ python build_report.py
 ## 2026-09-20 容量与共存专题
 
 `ub_capacity_memory_evolution.md/html`：官方端口与功耗规格、待验证的功率关系、Mooncake 内存共存、SSD 预置及演进门槛。`python capacity_planning.py` 生成 64 个解析敏感性配置至 `capacity_planning.json`；这是必要条件计算，不是新硬件仿真或实机测量。
+
+## 2026-09-28 内存管理与同构节点专题
+
+优先阅读 `ub_memory_scale_assessment.md/html`：核对基础规范 2.0 第 9 章与 §8.2.6，区分远端映射、本地复制和多 Home 分片。新增结果不覆盖历史数据。
+
+```bash
+python memory_scale_analysis.py
+python draw_memory_scale.py
+python build_report.py
+```
+
+`memory_scale_results.json` 包含 30 个解析配置与 36 次分块仿真；同构端点、DRAM 预算与窗口参数明确记录。原始官方 PDF 仅用于本地核对，不在仓库中重新分发。
