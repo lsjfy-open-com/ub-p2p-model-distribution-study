@@ -8,7 +8,7 @@
 
 ## 1. 原文核对与版本边界
 
-已核对用户从 [灵衢官网](https://www.unifiedbus.com/en)下载的《UnifiedBus Base Specification》**2.1，2026-09** 原文，共 613 页。文件位于 `/Users/shijieluan/workspace/UnifiedBus-PV-Transfer/UB-Base-Specification-2.1.0-en-clean.pdf`，SHA-256：`641a10ffcf48789af6f2392e8faab330b6d1e3d1fa447750ece7cd4ef578df82`。同时核对 OS 参考设计 2.0 的第 4 章和 §5.3。此前引用的 2.0 镜像仅保留为历史资料，不再作为当前版本核对的替代。
+已核对用户从 [灵衢官网](https://www.unifiedbus.com/en)下载的《UnifiedBus Base Specification》**2.1，2026-09** 原文，共 613 页。本地文件名为 `UB-Base-Specification-2.1.0-en-clean.pdf`，SHA-256：`641a10ffcf48789af6f2392e8faab330b6d1e3d1fa447750ece7cd4ef578df82`。同时核对 OS 参考设计 2.0 的第 4 章和 §5.3。此前引用的 2.0 镜像仅保留为历史资料，不再作为当前版本核对的替代。
 
 |核对位置（2.1 PDF 页码与印刷页码一致）|规范事实的概括|本方案的工程判断|
 |---|---|---|

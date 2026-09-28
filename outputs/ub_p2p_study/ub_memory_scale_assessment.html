@@ -3,7 +3,7 @@
 <p><strong>判断：集中只读 UB 是合理的首选基线，不能仅因有 50～100 个节点就断定必须 P2P。是否演进，取决于截止时间内 OM 的实际供数预算、接收节点 DRAM 的写入/转发预算、fabric 容量及业务干扰。UB 内存管理使远端内存可被安全访问，但不会使一份 OM 物理内存自动成为多个独立供数源。</strong></p>
 <p><strong>评估终点：所有接收节点的本地 DRAM 中完整模型包就绪，并满足约定的内存可见性与完整性条件。SSD 仅用于可选的后续留存，不是分发成功或模型可用的前置条件，不进入本次速率/时间公式。OM 预热、实际校验开销、模型加载及服务 READY 分阶段记录；本次仿真未计校验耗时。</strong></p>
 <h2 id="1">1. 原文核对与版本边界</h2>
-<p>已核对用户从 <a href="https://www.unifiedbus.com/en">灵衢官网</a>下载的《UnifiedBus Base Specification》<strong>2.1，2026-09</strong> 原文，共 613 页。文件位于 <code>/Users/shijieluan/workspace/UnifiedBus-PV-Transfer/UB-Base-Specification-2.1.0-en-clean.pdf</code>，SHA-256：<code>641a10ffcf48789af6f2392e8faab330b6d1e3d1fa447750ece7cd4ef578df82</code>。同时核对 OS 参考设计 2.0 的第 4 章和 §5.3。此前引用的 2.0 镜像仅保留为历史资料，不再作为当前版本核对的替代。</p>
+<p>已核对用户从 <a href="https://www.unifiedbus.com/en">灵衢官网</a>下载的《UnifiedBus Base Specification》<strong>2.1，2026-09</strong> 原文，共 613 页。本地文件名为 <code>UB-Base-Specification-2.1.0-en-clean.pdf</code>，SHA-256：<code>641a10ffcf48789af6f2392e8faab330b6d1e3d1fa447750ece7cd4ef578df82</code>。同时核对 OS 参考设计 2.0 的第 4 章和 §5.3。此前引用的 2.0 镜像仅保留为历史资料，不再作为当前版本核对的替代。</p>
 <table>
 <thead>
 <tr>

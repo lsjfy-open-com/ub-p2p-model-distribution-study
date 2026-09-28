@@ -67,19 +67,30 @@
       "file": "UB-Firmware-Specification-2.0-en.pdf",
       "catalog_version": "2.0.0",
       "language": "en",
-      "source": "pending_identity",
-      "status": "pending_name_organization_email",
+      "source": "official_download",
+      "status": "available",
       "public_download_url": "https://www.unifiedbus.com/api-server/web/v1/docs/en/file/UB-Firmware-Specification-2.0-en.pdf/2.0.0",
-      "license_version": "v1"
+      "license_version": "v1",
+      "bytes": 2086234,
+      "sha256": "b09d51f2debd4682e17b371e373431d601e686943a1fcaf24bb99968ab5cada5",
+      "pages": 114,
+      "document_revision": "2.0",
+      "release_date": "2025-12-31"
     },
     {
       "file": "UB-Compatibility-Test-Specification-2.0-zh.pdf",
       "catalog_version": "2.0.0",
       "language": "zh",
-      "source": "pending_identity",
-      "status": "pending_name_organization_email",
+      "source": "official_download",
+      "status": "available",
       "public_download_url": "https://www.unifiedbus.com/api-server/web/v1/docs/zh/file/UB-Compatibility-Test-Specification-2.0-zh.pdf/2.0.0",
-      "license_version": "v2"
+      "license_version": "v2",
+      "bytes": 402670,
+      "sha256": "cccdc381dcc1cef013e029acd069420d30d1d6065d9850e75af9067db510e4df",
+      "pages": 37,
+      "document_revision": "2.0",
+      "release_month": "2026-09",
+      "referenced_base_revision": "2.0.1"
     }
   ]
 }
