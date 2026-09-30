@@ -1,5 +1,7 @@
 # UB＋P2P 模型分发研究交付
 
+最新的公开版更新见 [`public_update_2026-09-30/README.md`](public_update_2026-09-30/README.md)：补充已公布的硬件带宽口径、UB-Mesh 适用边界和可复现的本地敏感性模型。目标 OM 的 UB 性能仍待实测。
+
 优先阅读 `report.html`（离线可打开，图表已内嵌）或 `report.md`。这是自编的资源/调度级仿真，不是 UB/TCP 协议实现，不是实机 benchmark。
 
 ## 文件
